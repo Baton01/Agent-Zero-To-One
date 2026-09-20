@@ -62,3 +62,9 @@ desktop.ini
 # ---------- 你自己的产出：建议提交 ----------
 # 04-Outputs/ 和 03-学习笔记/ 是你的资产，**不要**忽略，
 # 用 Git 定期提交它们（学习中枢 §6.4 有提醒）。
+
+# ---------- 启动器构建产物（发布时才生成，不入库）----------
+launcher/build/
+launcher/dist/
+launcher/release/
+launcher/*.spec
