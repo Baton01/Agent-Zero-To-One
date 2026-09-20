@@ -7,14 +7,14 @@
 **0 基础入门 · 17 章渐进教程 · 每章可运行代码 · 内嵌 AI 教练 · 模拟面试 · 项目实战案例 · 算法面试轨道**
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Chapters](https://img.shields.io/badge/章节-17%20章-1f6feb)](#-课程体系17-章)
+[![Chapters](https://img.shields.io/badge/章节-17%20章-1f6feb)](#课程体系17-章)
 [![Web](https://img.shields.io/badge/网页版-双击即开-8957e5)](#-网页版双击即开)
-[![Code](https://img.shields.io/badge/可运行代码-17%20份-2ea043)](#-快速开始)
-[![No API Key](https://img.shields.io/badge/离线Mock模式-无需%20API%20Key-ea4aaa)](#-双模式在线--离线)
-[![Project](https://img.shields.io/badge/项目实战案例-76%20题-8250df)](#-面试与求职)
+[![Code](https://img.shields.io/badge/可运行代码-17%20份-2ea043)](#快速开始)
+[![No API Key](https://img.shields.io/badge/离线Mock模式-无需%20API%20Key-ea4aaa)](#双模式在线--离线)
+[![Project](https://img.shields.io/badge/项目实战案例-76%20题-8250df)](#面试与求职)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-[网页版](#-网页版双击即开) · [快速开始](#-快速开始) · [课程体系](#-课程体系17-章) · [能力对照](#-这个项目整合了什么) · [目录结构](#-目录结构) · [项目阶梯](#-项目阶梯)
+[网页版](#-网页版双击即开) · [快速开始](#快速开始) · [课程体系](#课程体系17-章) · [能力对照](#这个项目整合了什么) · [目录结构](#目录结构) · [项目阶梯](#项目阶梯)
 
 </div>
 
