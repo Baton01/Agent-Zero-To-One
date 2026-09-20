@@ -1,0 +1,3888 @@
+{
+ "problems": {
+  "206-反转链表": {
+   "title": "206. 反转链表",
+   "entry": "reverseList",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def reverseList(head):\n    pre = None\n    cur = head\n    while cur:\n        nxt = cur.next\n        cur.next = pre\n        pre = cur\n        cur = nxt\n    return pre\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ]
+     },
+     "expected": [
+      5,
+      4,
+      3,
+      2,
+      1
+     ],
+     "note": "题解示例"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": [],
+     "note": "边界：空链表"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      2,
+      1
+     ],
+     "note": "边界：两个节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      4,
+      3,
+      2,
+      1
+     ],
+     "note": "偶数个节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      3,
+      2,
+      2,
+      1
+     ],
+     "note": "重复值"
+    },
+    {
+     "input": {
+      "head": [
+       -1,
+       -2,
+       -3
+      ]
+     },
+     "expected": [
+      -3,
+      -2,
+      -1
+     ],
+     "note": "含负数"
+    }
+   ]
+  },
+  "234-回文链表": {
+   "title": "234. 回文链表",
+   "entry": "isPalindrome",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "",
+   "reference": "def isPalindrome(head):\n    if not head or not head.next:\n        return True\n    slow, fast = head, head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n    prev = None\n    cur = slow\n    while cur:\n        nxt = cur.next\n        cur.next = prev\n        prev = cur\n        cur = nxt\n    left, right = head, prev\n    while right:\n        if left.val != right.val:\n            return False\n        left = left.next\n        right = right.next\n    return True\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       2,
+       1
+      ]
+     },
+     "expected": true,
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ]
+     },
+     "expected": false,
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": true,
+     "note": "边界：空链表视为回文"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": true,
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       2,
+       1
+      ]
+     },
+     "expected": true,
+     "note": "奇数个节点回文"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       2,
+       1
+      ]
+     },
+     "expected": false,
+     "note": "偶数个节点但不对称"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": false,
+     "note": "奇数个节点非回文"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       1
+      ]
+     },
+     "expected": true,
+     "note": "两个相同值"
+    }
+   ]
+  },
+  "141-环形链表": {
+   "title": "141. 环形链表",
+   "entry": "hasCycle",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "",
+   "reference": "def hasCycle(head):\n    if not head or not head.next:\n        return False\n    slow, fast = head, head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow == fast:\n            return True\n    return False\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       3,
+       2,
+       0,
+       -4,
+       {
+        "cycle": 1
+       }
+      ]
+     },
+     "expected": true,
+     "note": "题解示例：尾节点接回下标 1"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": true,
+     "note": "环入口在头节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": true,
+     "note": "单节点自环"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": true,
+     "note": "整个链表就是一个环"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ]
+     },
+     "expected": false,
+     "note": "无环：两节点"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": false,
+     "note": "边界：空链表"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": false,
+     "note": "边界：单节点无环"
+    }
+   ]
+  },
+  "142-环形链表II": {
+   "title": "142. 环形链表 II",
+   "entry": "detectCycle",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "",
+   "reference": "def detectCycle(head):\n    # 判题约定：返回环入口节点的下标，无环返回 -1\n    if not head:\n        return -1\n    slow, fast = head, head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow == fast:\n            # 第二阶段：找入口，同时数下标\n            idx = 0\n            p = head\n            while p != slow:\n                p = p.next\n                slow = slow.next\n                idx += 1\n            return idx\n    return -1\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       3,
+       2,
+       0,
+       -4,
+       {
+        "cycle": 1
+       }
+      ]
+     },
+     "expected": 1,
+     "note": "按环入口下标比对：题解示例（返回下标 1 的节点）"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": 0,
+     "note": "按环入口下标比对：环入口在头节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": 0,
+     "note": "按环入口下标比对：单节点自环"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       {
+        "cycle": 0
+       }
+      ]
+     },
+     "expected": 0,
+     "note": "按环入口下标比对：整个链表成环"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       {
+        "cycle": 3
+       }
+      ]
+     },
+     "expected": 3,
+     "note": "按环入口下标比对：尾部接回中间的节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ]
+     },
+     "expected": -1,
+     "note": "按环入口下标比对：无环返回 -1"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": -1,
+     "note": "按环入口下标比对：边界：空链表返回 -1"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": -1,
+     "note": "按环入口下标比对：边界：单节点无环返回 -1"
+    }
+   ]
+  },
+  "21-合并两个有序链表": {
+   "title": "21. 合并两个有序链表",
+   "entry": "mergeTwoLists",
+   "kind": "function",
+   "params": [
+    "l1",
+    "l2"
+   ],
+   "types": {
+    "l1": "ListNode",
+    "l2": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def mergeTwoLists(l1, l2):\n    dummy = ListNode(0)\n    cur = dummy\n    while l1 and l2:\n        if l1.val <= l2.val:\n            cur.next = l1\n            l1 = l1.next\n        else:\n            cur.next = l2\n            l2 = l2.next\n        cur = cur.next\n    cur.next = l1 if l1 else l2\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "l1": [
+       1,
+       2,
+       4
+      ],
+      "l2": [
+       1,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      1,
+      2,
+      3,
+      4,
+      4
+     ],
+     "note": "题解示例"
+    },
+    {
+     "input": {
+      "l1": [],
+      "l2": []
+     },
+     "expected": [],
+     "note": "边界：两个空链表"
+    },
+    {
+     "input": {
+      "l1": [],
+      "l2": [
+       0
+      ]
+     },
+     "expected": [
+      0
+     ],
+     "note": "边界：一个为空"
+    },
+    {
+     "input": {
+      "l1": [
+       5
+      ],
+      "l2": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "note": "长度相差大"
+    },
+    {
+     "input": {
+      "l1": [
+       1,
+       3,
+       5
+      ],
+      "l2": [
+       2,
+       4,
+       6
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ],
+     "note": "交错合并"
+    },
+    {
+     "input": {
+      "l1": [
+       1,
+       1,
+       1
+      ],
+      "l2": [
+       1,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "note": "全相同值"
+    }
+   ]
+  },
+  "2-两数相加": {
+   "title": "2. 两数相加",
+   "entry": "addTwoNumbers",
+   "kind": "function",
+   "params": [
+    "l1",
+    "l2"
+   ],
+   "types": {
+    "l1": "ListNode",
+    "l2": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def addTwoNumbers(l1, l2):\n    dummy = ListNode(0)\n    cur = dummy\n    carry = 0\n    while l1 or l2 or carry:\n        val1 = l1.val if l1 else 0\n        val2 = l2.val if l2 else 0\n        total = val1 + val2 + carry\n        carry = total // 10\n        cur.next = ListNode(total % 10)\n        cur = cur.next\n        if l1: l1 = l1.next\n        if l2: l2 = l2.next\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "l1": [
+       2,
+       4,
+       3
+      ],
+      "l2": [
+       5,
+       6,
+       4
+      ]
+     },
+     "expected": [
+      7,
+      0,
+      8
+     ],
+     "note": "题解示例：342 + 465 = 807"
+    },
+    {
+     "input": {
+      "l1": [
+       0
+      ],
+      "l2": [
+       0
+      ]
+     },
+     "expected": [
+      0
+     ],
+     "note": "边界：两个 0"
+    },
+    {
+     "input": {
+      "l1": [
+       9,
+       9,
+       9,
+       9,
+       9,
+       9,
+       9
+      ],
+      "l2": [
+       9,
+       9,
+       9,
+       9
+      ]
+     },
+     "expected": [
+      8,
+      9,
+      9,
+      9,
+      0,
+      0,
+      0,
+      1
+     ],
+     "note": "连续进位：9999999 + 9999 = 10009998，结果多一位"
+    },
+    {
+     "input": {
+      "l1": [
+       1
+      ],
+      "l2": [
+       9,
+       9
+      ]
+     },
+     "expected": [
+      0,
+      0,
+      1
+     ],
+     "note": "位数不同且有进位：1 + 99 = 100"
+    },
+    {
+     "input": {
+      "l1": [
+       5
+      ],
+      "l2": [
+       5
+      ]
+     },
+     "expected": [
+      0,
+      1
+     ],
+     "note": "单节点相加进位"
+    },
+    {
+     "input": {
+      "l1": [
+       0
+      ],
+      "l2": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3
+     ],
+     "note": "一个链表表示 0"
+    }
+   ]
+  },
+  "19-删除链表的倒数第N个节点": {
+   "title": "19. 删除链表的倒数第 N 个节点",
+   "entry": "removeNthFromEnd",
+   "kind": "function",
+   "params": [
+    "head",
+    "n"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def removeNthFromEnd(head, n):\n    dummy = ListNode(0, head)\n    fast = slow = dummy\n    for _ in range(n + 1):\n        fast = fast.next\n    while fast:\n        fast = fast.next\n        slow = slow.next\n    slow.next = slow.next.next\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "n": 2
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "note": "题解示例：删除倒数第 2 个节点"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ],
+      "n": 1
+     },
+     "expected": [],
+     "note": "边界：单节点链表，删完为空"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ],
+      "n": 2
+     },
+     "expected": [
+      2
+     ],
+     "note": "删除头节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3
+      ],
+      "n": 1
+     },
+     "expected": [
+      1,
+      2
+     ],
+     "note": "删除尾节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "n": 5
+     },
+     "expected": [
+      2,
+      3,
+      4,
+      5
+     ],
+     "note": "n 等于链表长度（删头节点）"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "n": 2
+     },
+     "expected": [
+      1,
+      2,
+      4
+     ],
+     "note": "删除中间节点"
+    }
+   ]
+  },
+  "24-两两交换链表中的节点": {
+   "title": "24. 两两交换链表中的节点",
+   "entry": "swapPairs",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def swapPairs(head):\n    dummy = ListNode(0, head)\n    pre = dummy\n    while pre.next and pre.next.next:\n        p1 = pre.next\n        p2 = p1.next\n        pre.next = p2\n        p1.next = p2.next\n        p2.next = p1\n        pre = p1\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      2,
+      1,
+      4,
+      3
+     ],
+     "note": "题解示例"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": [],
+     "note": "边界：空链表"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      2,
+      1
+     ],
+     "note": "两个节点"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      2,
+      1,
+      3
+     ],
+     "note": "奇数个节点：最后一个不交换"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ]
+     },
+     "expected": [
+      2,
+      1,
+      4,
+      3,
+      5
+     ],
+     "note": "奇数个节点（5 个）"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       1,
+       1,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "note": "全相同值"
+    }
+   ]
+  },
+  "25-K个一组翻转链表": {
+   "title": "25. K 个一组翻转链表",
+   "entry": "reverseKGroup",
+   "kind": "function",
+   "params": [
+    "head",
+    "k"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def reverseKGroup(head, k):\n    if k == 1 or not head:\n        return head\n    dummy = ListNode(0, head)\n    pre = dummy\n    while True:\n        cur = pre\n        for _ in range(k):\n            cur = cur.next\n            if not cur:\n                return dummy.next\n        start = pre.next\n        next_group = cur.next\n        cur.next = None\n        p, c = None, start\n        while c:\n            nxt = c.next\n            c.next = p\n            p = c\n            c = nxt\n        pre.next = p\n        start.next = next_group\n        pre = start\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "k": 2
+     },
+     "expected": [
+      2,
+      1,
+      4,
+      3,
+      5
+     ],
+     "note": "题解示例：k = 2"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "k": 3
+     },
+     "expected": [
+      3,
+      2,
+      1,
+      4,
+      5
+     ],
+     "note": "题解示例：k = 3"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "k": 1
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "note": "k = 1：不需要翻转"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "k": 5
+     },
+     "expected": [
+      5,
+      4,
+      3,
+      2,
+      1
+     ],
+     "note": "k 等于链表长度：整条翻转"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "k": 2
+     },
+     "expected": [
+      2,
+      1,
+      4,
+      3
+     ],
+     "note": "刚好整除分组"
+    },
+    {
+     "input": {
+      "head": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "k": 6
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "note": "k 大于链表长度：原样返回"
+    },
+    {
+     "input": {
+      "head": [],
+      "k": 2
+     },
+     "expected": [],
+     "note": "边界：空链表"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ],
+      "k": 1
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点"
+    }
+   ]
+  },
+  "148-排序链表": {
+   "title": "148. 排序链表",
+   "entry": "sortList",
+   "kind": "function",
+   "params": [
+    "head"
+   ],
+   "types": {
+    "head": "ListNode"
+   },
+   "returnType": "ListNode",
+   "reference": "def sortList(head):\n    if not head or not head.next:\n        return head\n    slow, fast = head, head.next\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n    mid = slow.next\n    slow.next = None\n    left = sortList(head)\n    right = sortList(mid)\n    dummy = ListNode(0)\n    cur = dummy\n    while left and right:\n        if left.val <= right.val:\n            cur.next = left\n            left = left.next\n        else:\n            cur.next = right\n            right = right.next\n        cur = cur.next\n    cur.next = left if left else right\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "head": [
+       4,
+       2,
+       1,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "note": "题解示例"
+    },
+    {
+     "input": {
+      "head": [
+       -1,
+       5,
+       3,
+       4,
+       0
+      ]
+     },
+     "expected": [
+      -1,
+      0,
+      3,
+      4,
+      5
+     ],
+     "note": "含负数"
+    },
+    {
+     "input": {
+      "head": []
+     },
+     "expected": [],
+     "note": "边界：空链表"
+    },
+    {
+     "input": {
+      "head": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点（已有序）"
+    },
+    {
+     "input": {
+      "head": [
+       5,
+       4,
+       3,
+       2,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "note": "逆序"
+    },
+    {
+     "input": {
+      "head": [
+       2,
+       2,
+       2,
+       2
+      ]
+     },
+     "expected": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "note": "全相同值"
+    },
+    {
+     "input": {
+      "head": [
+       3,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      3
+     ],
+     "note": "两个节点"
+    }
+   ]
+  },
+  "23-合并K个升序链表": {
+   "title": "23. 合并 K 个升序链表",
+   "entry": "mergeKLists",
+   "kind": "function",
+   "params": [
+    "lists"
+   ],
+   "types": {},
+   "returnType": "ListNode",
+   "reference": "import heapq\n\ndef mergeKLists(lists):\n    # 判题器不支持 List[ListNode]，lists 以二维数组传入，这里先构造链表\n    heads = []\n    for arr in lists:\n        dummy = ListNode(0)\n        cur = dummy\n        for v in arr:\n            cur.next = ListNode(v)\n            cur = cur.next\n        heads.append(dummy.next)\n    dummy = ListNode(0)\n    cur = dummy\n    heap = []\n    for i, node in enumerate(heads):\n        if node:\n            heapq.heappush(heap, (node.val, i, node))\n    while heap:\n        val, i, node = heapq.heappop(heap)\n        cur.next = node\n        cur = cur.next\n        if node.next:\n            heapq.heappush(heap, (node.next.val, i, node.next))\n    return dummy.next\n",
+   "cases": [
+    {
+     "input": {
+      "lists": [
+       [
+        1,
+        4,
+        5
+       ],
+       [
+        1,
+        3,
+        4
+       ],
+       [
+        2,
+        6
+       ]
+      ]
+     },
+     "expected": [
+      1,
+      1,
+      2,
+      3,
+      4,
+      4,
+      5,
+      6
+     ],
+     "note": "lists 以二维数组传入（函数内需自行构造链表）：题解示例"
+    },
+    {
+     "input": {
+      "lists": []
+     },
+     "expected": [],
+     "note": "lists 以二维数组传入：边界：空数组"
+    },
+    {
+     "input": {
+      "lists": [
+       []
+      ]
+     },
+     "expected": [],
+     "note": "lists 以二维数组传入：边界：只有一个空链表"
+    },
+    {
+     "input": {
+      "lists": [
+       [],
+       [
+        1
+       ]
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "lists 以二维数组传入：空链表与非空链表混合"
+    },
+    {
+     "input": {
+      "lists": [
+       [
+        1
+       ]
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "lists 以二维数组传入：K = 1"
+    },
+    {
+     "input": {
+      "lists": [
+       [
+        1,
+        2,
+        3
+       ],
+       [
+        4,
+        5,
+        6
+       ],
+       [
+        7,
+        8,
+        9
+       ]
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "note": "lists 以二维数组传入：首尾相接"
+    },
+    {
+     "input": {
+      "lists": [
+       [
+        -3,
+        -1,
+        2
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "expected": [
+      -3,
+      -1,
+      0,
+      2,
+      4
+     ],
+     "note": "lists 以二维数组传入：含负数"
+    }
+   ]
+  },
+  "146-LRU缓存": {
+   "title": "146. LRU 缓存",
+   "entry": "LRUCache",
+   "kind": "operations",
+   "reference": "class LRUCache:\n    def __init__(self, capacity):\n        self.cap = capacity\n        self.data = {}\n        self.order = []\n    def get(self, key):\n        if key not in self.data:\n            return -1\n        self.order.remove(key)\n        self.order.append(key)\n        return self.data[key]\n    def put(self, key, value):\n        if key in self.data:\n            self.order.remove(key)\n        self.data[key] = value\n        self.order.append(key)\n        if len(self.data) > self.cap:\n            oldest = self.order.pop(0)\n            del self.data[oldest]\n",
+   "cases": [
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        3,
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        4,
+        4
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        4
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      null,
+      1,
+      null,
+      -1,
+      null,
+      -1,
+      3,
+      4
+     ],
+     "note": "官方示例。expected 的第一个 null 对应构造函数，之后每个元素对应一次方法调用的返回值（put 返回 None）"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      1,
+      null,
+      -1,
+      2
+     ],
+     "note": "capacity = 1：put 新 key 立刻淘汰旧的"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        10
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      null,
+      null,
+      10,
+      2
+     ],
+     "note": "重复 put 同一个 key：更新值，不算新条目"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      -1,
+      -1
+     ],
+     "note": "get 不存在的 key：返回 -1"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        3,
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      null,
+      1,
+      null,
+      -1,
+      3,
+      1
+     ],
+     "note": "get 会刷新最近使用：被 get 过的 1 不会先被淘汰"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        3,
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "get",
+       [
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        3
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      null,
+      null,
+      -1,
+      2,
+      3
+     ],
+     "note": "触发淘汰：最久未使用的 1 被淘汰"
+    },
+    {
+     "ops": [
+      [
+       "LRUCache",
+       [
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        2
+       ]
+      ],
+      [
+       "put",
+       [
+        1,
+        3
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ],
+      [
+       "put",
+       [
+        2,
+        2
+       ]
+      ],
+      [
+       "get",
+       [
+        1
+       ]
+      ]
+     ],
+     "expected": [
+      null,
+      null,
+      null,
+      null,
+      3,
+      null,
+      3
+     ],
+     "note": "反复覆盖同一个 key 不会撑爆容量"
+    }
+   ]
+  },
+  "94-二叉树的中序遍历": {
+   "title": "94. 二叉树的中序遍历",
+   "entry": "inorderTraversal",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def inorderTraversal(root):\n    res = []\n\n    def dfs(node):\n        if not node:\n            return\n        dfs(node.left)\n        res.append(node.val)\n        dfs(node.right)\n\n    dfs(root)\n    return res\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      3,
+      2
+     ],
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": [],
+     "note": "题解示例2：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "题解示例3：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       null,
+       6
+      ]
+     },
+     "expected": [
+      4,
+      2,
+      5,
+      1,
+      3,
+      6
+     ],
+     "note": "左右子树都有节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2,
+       null,
+       3,
+       null,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "note": "只有右子树的链"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       2,
+       null,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3
+     ],
+     "note": "只有左子树的链"
+    }
+   ]
+  },
+  "104-二叉树的最大深度": {
+   "title": "104. 二叉树的最大深度",
+   "entry": "maxDepth",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def maxDepth(root):\n    if not root:\n        return 0\n    return 1 + max(maxDepth(root.left), maxDepth(root.right))\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       3,
+       9,
+       20,
+       null,
+       null,
+       15,
+       7
+      ]
+     },
+     "expected": 3,
+     "note": "题解示例"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": 0,
+     "note": "边界：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": 1,
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ]
+     },
+     "expected": 2,
+     "note": "只有左子树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2
+      ]
+     },
+     "expected": 2,
+     "note": "只有右子树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       null,
+       null,
+       5
+      ]
+     },
+     "expected": 3,
+     "note": "左右两侧都到第 3 层"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       null,
+       3,
+       null,
+       4,
+       null,
+       5
+      ]
+     },
+     "expected": 5,
+     "note": "极深的左链（深度 5）"
+    }
+   ]
+  },
+  "226-翻转二叉树": {
+   "title": "226. 翻转二叉树",
+   "entry": "invertTree",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "TreeNode",
+   "reference": "def invertTree(root):\n    if not root:\n        return None\n    root.left, root.right = root.right, root.left\n    invertTree(root.left)\n    invertTree(root.right)\n    return root\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       4,
+       2,
+       7,
+       1,
+       3,
+       6,
+       9
+      ]
+     },
+     "expected": [
+      4,
+      7,
+      2,
+      9,
+      6,
+      3,
+      1
+     ],
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       2,
+       1,
+       3
+      ]
+     },
+     "expected": [
+      2,
+      3,
+      1
+     ],
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": [],
+     "note": "题解示例3：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2
+     ],
+     "note": "只有左子树：翻转后变成右子树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      2
+     ],
+     "note": "只有右子树：翻转后变成左子树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      3,
+      2,
+      null,
+      null,
+      null,
+      4
+     ],
+     "note": "三层不完全树"
+    }
+   ]
+  },
+  "101-对称二叉树": {
+   "title": "101. 对称二叉树",
+   "entry": "isSymmetric",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def isSymmetric(root):\n    def check(p, q):\n        if not p and not q:\n            return True\n        if not p or not q:\n            return False\n        if p.val != q.val:\n            return False\n        return check(p.left, q.right) and check(p.right, q.left)\n\n    return check(root.left, root.right)\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2,
+       3,
+       4,
+       4,
+       3
+      ]
+     },
+     "expected": true,
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2,
+       null,
+       3,
+       null,
+       3
+      ]
+     },
+     "expected": false,
+     "note": "题解示例2：值相同但结构不对称"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": true,
+     "note": "边界：单节点（左右都空）"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2
+      ]
+     },
+     "expected": true,
+     "note": "两个孩子值相同"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": false,
+     "note": "两个孩子值不同"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2,
+       2,
+       null,
+       null,
+       2
+      ]
+     },
+     "expected": true,
+     "note": "外侧成对的镜像叶子"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2,
+       null,
+       3,
+       3,
+       null
+      ]
+     },
+     "expected": true,
+     "note": "内侧成对的镜像叶子"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       2,
+       3,
+       null,
+       null,
+       4
+      ]
+     },
+     "expected": false,
+     "note": "深层值不同：3 vs 4"
+    }
+   ]
+  },
+  "543-二叉树的直径": {
+   "title": "543. 二叉树的直径",
+   "entry": "diameterOfBinaryTree",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def diameterOfBinaryTree(root):\n    max_d = 0\n\n    def depth(node):\n        nonlocal max_d\n        if not node:\n            return 0\n        left_depth = depth(node.left)\n        right_depth = depth(node.right)\n        max_d = max(max_d, left_depth + right_depth)\n        return 1 + max(left_depth, right_depth)\n\n    depth(root)\n    return max_d\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ]
+     },
+     "expected": 3,
+     "note": "题解示例1：4-2-1-3 或 5-2-1-3，长度 3（边数）"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ]
+     },
+     "expected": 1,
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": 0,
+     "note": "边界：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": 0,
+     "note": "边界：单节点（没有边）"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": 2,
+     "note": "三层满树：2-1-3"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       null,
+       null,
+       6
+      ]
+     },
+     "expected": 4,
+     "note": "左子树更深：6-4-2-1-3"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       null,
+       3,
+       null,
+       4
+      ]
+     },
+     "expected": 3,
+     "note": "只有左子树的链"
+    }
+   ]
+  },
+  "102-二叉树的层序遍历": {
+   "title": "102. 二叉树的层序遍历",
+   "entry": "levelOrder",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "from collections import deque\n\ndef levelOrder(root):\n    if not root:\n        return []\n    res = []\n    q = deque([root])\n    while q:\n        level = []\n        level_size = len(q)\n        for _ in range(level_size):\n            node = q.popleft()\n            level.append(node.val)\n            if node.left:\n                q.append(node.left)\n            if node.right:\n                q.append(node.right)\n        res.append(level)\n    return res\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       3,
+       9,
+       20,
+       null,
+       null,
+       15,
+       7
+      ]
+     },
+     "expected": [
+      [
+       3
+      ],
+      [
+       9,
+       20
+      ],
+      [
+       15,
+       7
+      ]
+     ],
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": [
+      [
+       1
+      ]
+     ],
+     "note": "题解示例2：单节点"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": [],
+     "note": "题解示例3：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ]
+     },
+     "expected": [
+      [
+       1
+      ],
+      [
+       2,
+       3
+      ],
+      [
+       4,
+       5,
+       6,
+       7
+      ]
+     ],
+     "note": "完全二叉树"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       null,
+       3
+      ]
+     },
+     "expected": [
+      [
+       1
+      ],
+      [
+       2
+      ],
+      [
+       3
+      ]
+     ],
+     "note": "只有左子树的链：每层一个节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2,
+       null,
+       3
+      ]
+     },
+     "expected": [
+      [
+       1
+      ],
+      [
+       2
+      ],
+      [
+       3
+      ]
+     ],
+     "note": "只有右子树的链：每层一个节点"
+    }
+   ]
+  },
+  "108-将有序数组转换为二叉搜索树": {
+   "title": "108. 将有序数组转换为二叉搜索树",
+   "entry": "sortedArrayToBST",
+   "kind": "function",
+   "params": [
+    "nums"
+   ],
+   "types": {},
+   "returnType": "TreeNode",
+   "reference": "def sortedArrayToBST(nums):\n    def build(left, right):\n        if left > right:\n            return None\n        mid = (left + right) // 2\n        root = TreeNode(nums[mid])\n        root.left = build(left, mid - 1)\n        root.right = build(mid + 1, right)\n        return root\n\n    return build(0, len(nums) - 1)\n",
+   "cases": [
+    {
+     "input": {
+      "nums": [
+       -10,
+       -3,
+       0,
+       5,
+       9
+      ]
+     },
+     "expected": [
+      [
+       -3,
+       -10,
+       5,
+       null,
+       null,
+       0,
+       9
+      ],
+      [
+       0,
+       -10,
+       5,
+       null,
+       -3,
+       null,
+       9
+      ],
+      [
+       0,
+       -10,
+       9,
+       null,
+       -3,
+       5
+      ],
+      [
+       0,
+       -3,
+       5,
+       -10,
+       null,
+       null,
+       9
+      ],
+      [
+       0,
+       -3,
+       9,
+       -10,
+       null,
+       5
+      ],
+      [
+       5,
+       -3,
+       9,
+       -10,
+       0
+      ]
+     ],
+     "note": "答案不唯一（any_of 列出全部合法的平衡 BST）：题解示例1，含 [0,-3,9,-10,null,5] 与 [0,-10,5,null,-3,null,9]",
+     "compare": "any_of"
+    },
+    {
+     "input": {
+      "nums": [
+       1,
+       3
+      ]
+     },
+     "expected": [
+      [
+       1,
+       null,
+       3
+      ],
+      [
+       3,
+       1
+      ]
+     ],
+     "note": "答案不唯一（any_of）：题解示例2，[3,1] 与 [1,null,3] 都合法",
+     "compare": "any_of"
+    },
+    {
+     "input": {
+      "nums": []
+     },
+     "expected": [],
+     "note": "边界：空数组返回空树"
+    },
+    {
+     "input": {
+      "nums": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单元素"
+    },
+    {
+     "input": {
+      "nums": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      2,
+      1,
+      3
+     ],
+     "note": "奇数长度：根只能取中点，形态唯一"
+    },
+    {
+     "input": {
+      "nums": [
+       1,
+       2,
+       3,
+       4
+      ]
+     },
+     "expected": [
+      [
+       2,
+       1,
+       3,
+       null,
+       null,
+       null,
+       4
+      ],
+      [
+       2,
+       1,
+       4,
+       null,
+       null,
+       3
+      ],
+      [
+       3,
+       1,
+       4,
+       null,
+       2
+      ],
+      [
+       3,
+       2,
+       4,
+       1
+      ]
+     ],
+     "note": "答案不唯一（any_of）：偶数长度，中点可偏左或偏右",
+     "compare": "any_of"
+    },
+    {
+     "input": {
+      "nums": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ]
+     },
+     "expected": [
+      [
+       2,
+       1,
+       4,
+       null,
+       null,
+       3,
+       5
+      ],
+      [
+       3,
+       1,
+       4,
+       null,
+       2,
+       null,
+       5
+      ],
+      [
+       3,
+       1,
+       5,
+       null,
+       2,
+       4
+      ],
+      [
+       3,
+       2,
+       4,
+       1,
+       null,
+       null,
+       5
+      ],
+      [
+       3,
+       2,
+       5,
+       1,
+       null,
+       4
+      ],
+      [
+       4,
+       2,
+       5,
+       1,
+       3
+      ]
+     ],
+     "note": "答案不唯一（any_of）：5 个元素的所有合法形态",
+     "compare": "any_of"
+    },
+    {
+     "input": {
+      "nums": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ]
+     },
+     "expected": [
+      [
+       3,
+       1,
+       5,
+       null,
+       2,
+       4,
+       6,
+       null,
+       null,
+       null,
+       null,
+       null,
+       7
+      ],
+      [
+       3,
+       1,
+       5,
+       null,
+       2,
+       4,
+       7,
+       null,
+       null,
+       null,
+       null,
+       6
+      ],
+      [
+       3,
+       1,
+       6,
+       null,
+       2,
+       4,
+       7,
+       null,
+       null,
+       null,
+       5
+      ],
+      [
+       3,
+       1,
+       6,
+       null,
+       2,
+       5,
+       7,
+       null,
+       null,
+       4
+      ],
+      [
+       3,
+       2,
+       5,
+       1,
+       null,
+       4,
+       6,
+       null,
+       null,
+       null,
+       null,
+       null,
+       7
+      ],
+      [
+       3,
+       2,
+       5,
+       1,
+       null,
+       4,
+       7,
+       null,
+       null,
+       null,
+       null,
+       6
+      ],
+      [
+       3,
+       2,
+       6,
+       1,
+       null,
+       4,
+       7,
+       null,
+       null,
+       null,
+       5
+      ],
+      [
+       3,
+       2,
+       6,
+       1,
+       null,
+       5,
+       7,
+       null,
+       null,
+       4
+      ],
+      [
+       4,
+       2,
+       6,
+       1,
+       3,
+       5,
+       7
+      ],
+      [
+       5,
+       2,
+       6,
+       1,
+       3,
+       null,
+       7,
+       null,
+       null,
+       null,
+       4
+      ],
+      [
+       5,
+       2,
+       7,
+       1,
+       3,
+       6,
+       null,
+       null,
+       null,
+       null,
+       4
+      ],
+      [
+       5,
+       2,
+       6,
+       1,
+       4,
+       null,
+       7,
+       null,
+       null,
+       3
+      ],
+      [
+       5,
+       2,
+       7,
+       1,
+       4,
+       6,
+       null,
+       null,
+       null,
+       3
+      ],
+      [
+       5,
+       3,
+       6,
+       1,
+       4,
+       null,
+       7,
+       null,
+       2
+      ],
+      [
+       5,
+       3,
+       7,
+       1,
+       4,
+       6,
+       null,
+       null,
+       2
+      ],
+      [
+       5,
+       3,
+       6,
+       2,
+       4,
+       null,
+       7,
+       1
+      ],
+      [
+       5,
+       3,
+       7,
+       2,
+       4,
+       6,
+       null,
+       1
+      ]
+     ],
+     "note": "答案不唯一（any_of）：7 个元素（满分平衡树）的所有合法形态",
+     "compare": "any_of"
+    }
+   ]
+  },
+  "98-验证二叉搜索树": {
+   "title": "98. 验证二叉搜索树",
+   "entry": "isValidBST",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def isValidBST(root):\n    prev = float('-inf')\n\n    def inorder(node):\n        nonlocal prev\n        if not node:\n            return True\n        if not inorder(node.left):\n            return False\n        if node.val <= prev:\n            return False\n        prev = node.val\n        return inorder(node.right)\n\n    return inorder(root)\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       2,
+       1,
+       3
+      ]
+     },
+     "expected": true,
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       5,
+       1,
+       4,
+       null,
+       null,
+       3,
+       6
+      ]
+     },
+     "expected": false,
+     "note": "题解示例2：右孩子 4 比根 5 小"
+    },
+    {
+     "input": {
+      "root": [
+       10,
+       5,
+       15,
+       null,
+       null,
+       6,
+       20
+      ]
+     },
+     "expected": false,
+     "note": "经典坑：6 是 10 的右孙子却比 10 小（只比较父子会误判）"
+    },
+    {
+     "input": {
+      "root": [
+       5,
+       4,
+       6,
+       null,
+       null,
+       3,
+       7
+      ]
+     },
+     "expected": false,
+     "note": "经典坑：3 是 5 的右孙子却比 5 小"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": true,
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2
+      ]
+     },
+     "expected": true,
+     "note": "只有右子树"
+    },
+    {
+     "input": {
+      "root": [
+       2,
+       2,
+       2
+      ]
+     },
+     "expected": false,
+     "note": "重复值：BST 要求严格递增"
+    },
+    {
+     "input": {
+      "root": [
+       -2147483648,
+       null,
+       2147483647
+      ]
+     },
+     "expected": true,
+     "note": "极值：INT_MIN / INT_MAX（哨兵取 float('-inf') 才不会挂）"
+    }
+   ]
+  },
+  "230-BST第K小的元素": {
+   "title": "230. 二叉搜索树中第 K 小的元素",
+   "entry": "kthSmallest",
+   "kind": "function",
+   "params": [
+    "root",
+    "k"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def kthSmallest(root, k):\n    count = 0\n    result = 0\n\n    def inorder(node):\n        nonlocal count, result\n        if not node:\n            return\n        inorder(node.left)\n        count += 1\n        if count == k:\n            result = node.val\n            return\n        inorder(node.right)\n\n    inorder(root)\n    return result\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       3,
+       1,
+       4,
+       null,
+       2
+      ],
+      "k": 1
+     },
+     "expected": 1,
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       5,
+       3,
+       6,
+       2,
+       4,
+       null,
+       null,
+       1
+      ],
+      "k": 3
+     },
+     "expected": 3,
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ],
+      "k": 1
+     },
+     "expected": 1,
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       1,
+       4,
+       null,
+       2
+      ],
+      "k": 3
+     },
+     "expected": 3,
+     "note": "中序为 1,2,3,4：取第 3 个"
+    },
+    {
+     "input": {
+      "root": [
+       5,
+       3,
+       6,
+       2,
+       4,
+       null,
+       null,
+       1
+      ],
+      "k": 6
+     },
+     "expected": 6,
+     "note": "k 等于节点数：最大值"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       2,
+       null,
+       1
+      ],
+      "k": 1
+     },
+     "expected": 1,
+     "note": "只有左子树的链：最小值在最深处"
+    }
+   ]
+  },
+  "199-二叉树的右视图": {
+   "title": "199. 二叉树的右视图",
+   "entry": "rightSideView",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "from collections import deque\n\ndef rightSideView(root):\n    if not root:\n        return []\n    res = []\n    q = deque([root])\n    while q:\n        level_size = len(q)\n        for i in range(level_size):\n            node = q.popleft()\n            if i == level_size - 1:\n                res.append(node.val)\n            if node.left:\n                q.append(node.left)\n            if node.right:\n                q.append(node.right)\n    return res\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       null,
+       5,
+       null,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      3,
+      4
+     ],
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      3
+     ],
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": [],
+     "note": "题解示例3：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": [
+      1
+     ],
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      2
+     ],
+     "note": "只有左孩子：左孩子也能被看到"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       null,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3
+     ],
+     "note": "只有左子树的链"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       null,
+       null,
+       4
+      ]
+     },
+     "expected": [
+      1,
+      3,
+      4
+     ],
+     "note": "右子树的左孩子是该层最右"
+    }
+   ]
+  },
+  "114-二叉树展开为链表": {
+   "title": "114. 二叉树展开为链表",
+   "entry": "flatten",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "TreeNode",
+   "reference": "def flatten(root):\n    # 判题约定：原地展开后 return root，判题器按展开后的树结构（层序）比对\n    prev = None\n\n    def dfs(node):\n        nonlocal prev\n        if not node:\n            return\n        dfs(node.right)\n        dfs(node.left)\n        node.right = prev\n        node.left = None\n        prev = node\n\n    dfs(root)\n    return root\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       5,
+       3,
+       4,
+       null,
+       6
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2,
+      null,
+      3,
+      null,
+      4,
+      null,
+      5,
+      null,
+      6
+     ],
+     "note": "按展开后的树结构比对（原地展开后 return root）：题解示例1"
+    },
+    {
+     "input": {
+      "root": []
+     },
+     "expected": [],
+     "note": "按展开后的树结构比对：边界：空树"
+    },
+    {
+     "input": {
+      "root": [
+       0
+      ]
+     },
+     "expected": [
+      0
+     ],
+     "note": "按展开后的树结构比对：边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2
+     ],
+     "note": "按展开后的树结构比对：只有左子树，展开成右链"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       null,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2
+     ],
+     "note": "按展开后的树结构比对：本来就是右链，保持不变"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2,
+      null,
+      3
+     ],
+     "note": "按展开后的树结构比对：前序为 1,2,3"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       1,
+       4
+      ]
+     },
+     "expected": [
+      3,
+      null,
+      1,
+      null,
+      4
+     ],
+     "note": "按展开后的树结构比对：前序为 3,1,4"
+    }
+   ]
+  },
+  "105-从前序与中序遍历构造二叉树": {
+   "title": "105. 从前序与中序遍历序列构造二叉树",
+   "entry": "buildTree",
+   "kind": "function",
+   "params": [
+    "preorder",
+    "inorder"
+   ],
+   "types": {},
+   "returnType": "TreeNode",
+   "reference": "def buildTree(preorder, inorder):\n    index_map = {val: i for i, val in enumerate(inorder)}\n\n    def build(pre_l, pre_r, in_l, in_r):\n        if pre_l > pre_r:\n            return None\n        root_val = preorder[pre_l]\n        root = TreeNode(root_val)\n        in_idx = index_map[root_val]\n        left_size = in_idx - in_l\n        root.left = build(pre_l + 1, pre_l + left_size, in_l, in_idx - 1)\n        root.right = build(pre_l + left_size + 1, pre_r, in_idx + 1, in_r)\n        return root\n\n    return build(0, len(preorder) - 1, 0, len(inorder) - 1)\n",
+   "cases": [
+    {
+     "input": {
+      "preorder": [
+       3,
+       9,
+       20,
+       15,
+       7
+      ],
+      "inorder": [
+       9,
+       3,
+       15,
+       20,
+       7
+      ]
+     },
+     "expected": [
+      3,
+      9,
+      20,
+      null,
+      null,
+      15,
+      7
+     ],
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "preorder": [
+       -1
+      ],
+      "inorder": [
+       -1
+      ]
+     },
+     "expected": [
+      -1
+     ],
+     "note": "题解示例2：单节点"
+    },
+    {
+     "input": {
+      "preorder": [],
+      "inorder": []
+     },
+     "expected": [],
+     "note": "边界：两个序列都为空"
+    },
+    {
+     "input": {
+      "preorder": [
+       1,
+       2
+      ],
+      "inorder": [
+       2,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      2
+     ],
+     "note": "只有左子树"
+    },
+    {
+     "input": {
+      "preorder": [
+       1,
+       2
+      ],
+      "inorder": [
+       1,
+       2
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2
+     ],
+     "note": "只有右子树"
+    },
+    {
+     "input": {
+      "preorder": [
+       1,
+       2,
+       4,
+       5,
+       3,
+       6,
+       7
+      ],
+      "inorder": [
+       4,
+       2,
+       5,
+       1,
+       6,
+       3,
+       7
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "note": "满二叉树"
+    },
+    {
+     "input": {
+      "preorder": [
+       1,
+       2,
+       3
+      ],
+      "inorder": [
+       3,
+       2,
+       1
+      ]
+     },
+     "expected": [
+      1,
+      2,
+      null,
+      3
+     ],
+     "note": "左链：1.left=2、2.left=3，层序里 1 的右孩子要占一个 null"
+    },
+    {
+     "input": {
+      "preorder": [
+       1,
+       2,
+       3
+      ],
+      "inorder": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": [
+      1,
+      null,
+      2,
+      null,
+      3
+     ],
+     "note": "右链：1.right=2、2.right=3"
+    }
+   ]
+  },
+  "437-路径总和III": {
+   "title": "437. 路径总和 III",
+   "entry": "pathSum",
+   "kind": "function",
+   "params": [
+    "root",
+    "targetSum"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "from collections import defaultdict\n\ndef pathSum(root, targetSum):\n    prefix = defaultdict(int)\n    prefix[0] = 1\n\n    def dfs(node, cur_sum):\n        if not node:\n            return 0\n        cur_sum += node.val\n        count = prefix[cur_sum - targetSum]\n        prefix[cur_sum] += 1\n        count += dfs(node.left, cur_sum)\n        count += dfs(node.right, cur_sum)\n        prefix[cur_sum] -= 1\n        return count\n\n    return dfs(root, 0)\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       10,
+       5,
+       -3,
+       3,
+       2,
+       null,
+       11,
+       3,
+       -2,
+       null,
+       1
+      ],
+      "targetSum": 8
+     },
+     "expected": 3,
+     "note": "题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       5,
+       4,
+       8,
+       11,
+       null,
+       13,
+       4,
+       7,
+       2,
+       null,
+       null,
+       5,
+       1
+      ],
+      "targetSum": 22
+     },
+     "expected": 3,
+     "note": "题解示例2"
+    },
+    {
+     "input": {
+      "root": [],
+      "targetSum": 1
+     },
+     "expected": 0,
+     "note": "边界：空树"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ],
+      "targetSum": 1
+     },
+     "expected": 1,
+     "note": "边界：单节点命中目标"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ],
+      "targetSum": 2
+     },
+     "expected": 0,
+     "note": "边界：单节点不命中"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       -1
+      ],
+      "targetSum": 0
+     },
+     "expected": 1,
+     "note": "含负数：1 + (-1) = 0"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ],
+      "targetSum": 3
+     },
+     "expected": 2,
+     "note": "[3] 与 [1,2] 两条路径"
+    },
+    {
+     "input": {
+      "root": [
+       0
+      ],
+      "targetSum": 0
+     },
+     "expected": 1,
+     "note": "值为 0 的节点容易漏：答案不是 0"
+    }
+   ]
+  },
+  "236-二叉树的最近公共祖先": {
+   "title": "236. 二叉树的最近公共祖先",
+   "entry": "lowestCommonAncestor",
+   "kind": "function",
+   "params": [
+    "root",
+    "p",
+    "q"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "TreeNode",
+   "reference": "def lowestCommonAncestor(root, p, q):\n    # 判题约定：p、q 以节点值传入（判题器传不了树内节点引用），先按值定位\n    def find(node, val):\n        if not node:\n            return None\n        if node.val == val:\n            return node\n        return find(node.left, val) or find(node.right, val)\n\n    p, q = find(root, p), find(root, q)\n\n    def lca(node):\n        if not node or node is p or node is q:\n            return node\n        left = lca(node.left)\n        right = lca(node.right)\n        if left and right:\n            return node\n        return left or right\n\n    return lca(root)\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       3,
+       5,
+       1,
+       6,
+       2,
+       0,
+       8,
+       null,
+       null,
+       7,
+       4
+      ],
+      "p": 5,
+      "q": 1
+     },
+     "expected": [
+      3,
+      5,
+      1,
+      6,
+      2,
+      0,
+      8,
+      null,
+      null,
+      7,
+      4
+     ],
+     "note": "p、q 以节点值传入（判题器传不了树内节点引用）：题解示例1"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       5,
+       1,
+       6,
+       2,
+       0,
+       8,
+       null,
+       null,
+       7,
+       4
+      ],
+      "p": 5,
+      "q": 4
+     },
+     "expected": [
+      5,
+      6,
+      2,
+      null,
+      null,
+      7,
+      4
+     ],
+     "note": "p、q 以节点值传入：题解示例2，LCA 就是 p 自己（节点可以是自己的祖先）"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2
+      ],
+      "p": 1,
+      "q": 2
+     },
+     "expected": [
+      1,
+      2
+     ],
+     "note": "p、q 以节点值传入：题解示例3，根就是 LCA"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ],
+      "p": 2,
+      "q": 3
+     },
+     "expected": [
+      1,
+      2,
+      3
+     ],
+     "note": "p、q 以节点值传入：p、q 分居左右子树，LCA 是根"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "p": 4,
+      "q": 5
+     },
+     "expected": [
+      2,
+      4,
+      5
+     ],
+     "note": "p、q 以节点值传入：同在左子树，LCA 是 2"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       null,
+       3
+      ],
+      "p": 3,
+      "q": 1
+     },
+     "expected": [
+      1,
+      2,
+      null,
+      3
+     ],
+     "note": "p、q 以节点值传入：只有左链，LCA 是根"
+    },
+    {
+     "input": {
+      "root": [
+       3,
+       5,
+       1,
+       6,
+       2,
+       0,
+       8,
+       null,
+       null,
+       7,
+       4
+      ],
+      "p": 7,
+      "q": 4
+     },
+     "expected": [
+      2,
+      7,
+      4
+     ],
+     "note": "p、q 以节点值传入：7 和 4 分别是 2 的左右孩子，LCA 是 2"
+    }
+   ]
+  },
+  "124-二叉树中的最大路径和": {
+   "title": "124. 二叉树中的最大路径和",
+   "entry": "maxPathSum",
+   "kind": "function",
+   "params": [
+    "root"
+   ],
+   "types": {
+    "root": "TreeNode"
+   },
+   "returnType": "",
+   "reference": "def maxPathSum(root):\n    max_sum = float('-inf')\n\n    def dfs(node):\n        nonlocal max_sum\n        if not node:\n            return 0\n        left_gain = max(dfs(node.left), 0)\n        right_gain = max(dfs(node.right), 0)\n        current_path_sum = left_gain + node.val + right_gain\n        max_sum = max(max_sum, current_path_sum)\n        return node.val + max(left_gain, right_gain)\n\n    dfs(root)\n    return max_sum\n",
+   "cases": [
+    {
+     "input": {
+      "root": [
+       1,
+       2,
+       3
+      ]
+     },
+     "expected": 6,
+     "note": "题解示例1：2 → 1 → 3"
+    },
+    {
+     "input": {
+      "root": [
+       -10,
+       9,
+       20,
+       null,
+       null,
+       15,
+       7
+      ]
+     },
+     "expected": 42,
+     "note": "题解示例2：15 → 20 → 7"
+    },
+    {
+     "input": {
+      "root": [
+       1
+      ]
+     },
+     "expected": 1,
+     "note": "边界：单节点"
+    },
+    {
+     "input": {
+      "root": [
+       -3
+      ]
+     },
+     "expected": -3,
+     "note": "边界：单节点负数（路径至少含一个节点，不能取 0）"
+    },
+    {
+     "input": {
+      "root": [
+       -2,
+       -1
+      ]
+     },
+     "expected": -1,
+     "note": "全负数：只取最大的单个节点"
+    },
+    {
+     "input": {
+      "root": [
+       -2,
+       -1,
+       -3
+      ]
+     },
+     "expected": -1,
+     "note": "全负数：最优路径是单独的 -1"
+    },
+    {
+     "input": {
+      "root": [
+       2,
+       -1
+      ]
+     },
+     "expected": 2,
+     "note": "负贡献被舍弃"
+    },
+    {
+     "input": {
+      "root": [
+       1,
+       -2,
+       3
+      ]
+     },
+     "expected": 4,
+     "note": "混合正负：1 + 3"
+    }
+   ]
+  }
+ }
+}

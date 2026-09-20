@@ -1,0 +1,21 @@
+# 本项目的所有章节代码都只依赖标准库，开箱即用。
+# 也就是说：不装任何东西，你也能跑完 17 章（离线 Mock 模式）。
+#
+# 下面的依赖是「可选增强」：
+#   pip install -r requirements.txt
+#
+# 它们分别服务于：
+#   openai     —— 更省心的官方 SDK（本项目默认用标准库 urllib 直连，不装也能在线跑）
+#   numpy      —— 第 08 章 RAG 的向量检索（不装则降级为纯 Python 实现，速度慢但结果一致）
+#   jieba      —— 第 08 章中文分词（不装则降级为字符 n-gram 切分）
+#   fastapi    —— 第 13 章 Web 服务骨架（不装则跳过 Web 部分，不影响其他章节）
+#   uvicorn    —— 同上
+#
+# 只想最小化安装的话，只装 numpy 和 jieba 就够：
+#   pip install numpy jieba
+
+openai>=1.0.0
+numpy>=1.24.0
+jieba>=0.42.1
+fastapi>=0.110.0
+uvicorn>=0.27.0

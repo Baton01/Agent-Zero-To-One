@@ -1,0 +1,41 @@
+MIT License
+
+Copyright (c) 2026 Agent Zero To One contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+关于内容版权
+================================================================================
+
+本项目的**代码**采用上述 MIT License。
+
+本项目的**教程正文、专题总结、面试题库等文字内容**是在以下开源项目的基础上
+重新组织与重写而成，方法论、体系设计与学习系统形态向它们借鉴：
+
+  - Hello-Agents        https://github.com/datawhalechina/hello-agents
+                        （Datawhale，CC BY-NC-SA 4.0）
+  - Agent-Learning-Hub  https://github.com/datawhalechina/Agent-Learning-Hub
+  - LLM-Master          https://github.com/youngyangyang04/llm-master
+                        （MIT）
+  - LeetCode-BaiTiTong  https://github.com/mo-lx/LeetCode-BaiTiTong
+                        （MIT）
+
+转载、分发或二次创作本项目时，请同时遵守上述来源项目的版权说明。
+本项目正文为独立撰写，未逐字复制来源项目内容。

@@ -1,0 +1,64 @@
+# ============================================================
+#  Agent Zero To One · Git 忽略规则
+# ============================================================
+
+# ---------- 密钥：绝对不能提交 ----------
+.env
+*.env
+!.env.example
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+ENV/
+
+# ---------- 判题服务：本地密钥配置，绝对不能提交 ----------
+05-算法面试/06-在线判题/judge.env
+05-算法面试/06-在线判题/submissions.json
+05-算法面试/06-在线判题/submissions.json.tmp
+05-算法面试/06-在线判题/my_solution.py
+05-算法面试/06-在线判题/my_*.py
+05-算法面试/06-在线判题/my_*.cpp
+05-算法面试/06-在线判题/*.exe
+05-算法面试/06-在线判题/*.out
+
+# ---------- 运行产物（学习过程中生成的，不必提交） ----------
+# 各章脚本跑出来的 trace、会话存档、记忆文件
+code/traces/
+code/sessions/
+code/memory_store.json
+code/out/
+code/output/
+traces/
+sessions/
+
+# ---------- 编辑器 ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------- 系统 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Obsidian（如果你想提交配置，把下面两行删掉） ----------
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+
+# ---------- 你自己的产出：建议提交 ----------
+# 04-Outputs/ 和 03-学习笔记/ 是你的资产，**不要**忽略，
+# 用 Git 定期提交它们（学习中枢 §6.4 有提醒）。
