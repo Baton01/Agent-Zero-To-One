@@ -822,7 +822,7 @@ def build():
         "meta": {
             "name": "Agent Zero To One",
             "subtitle": "从零开始学 AI Agent",
-            "tagline": "0 基础入门 · 17 章渐进教程 · 每章可运行代码 · 内嵌 AI 教练 · 模拟面试 · 直通面试",
+            "tagline": "0 基础入门 · 17 章渐进教程 · 每章可运行代码 · 内嵌 AI 教练 · 模拟面试 · 项目实战案例 · 算法面试轨道",
             "builtAt": "由 web/_build.py 生成",
         },
         "stats": {
