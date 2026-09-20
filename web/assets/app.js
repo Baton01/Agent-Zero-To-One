@@ -308,6 +308,8 @@
     html.push(navLink('#/mock', '模拟面试', DATA.mock.total));
     html.push(navLink('#/wiki/interview', '面试题库', DATA.wiki.interview.length));
     html.push(navLink('#/mock/docs', '面试流程与评分'));
+    html.push(navLink('#/project', '项目实战案例',
+      DATA.project ? DATA.project.stats.exercises : null));
     html.push(navLink('#/algo', '算法面试轨道',
       DATA.stats.algoProblems ? DATA.stats.algoProblems : null));
     html.push(navLink('#/judge', '在线判题', DATA.stats.algoProblems ? null : null));
@@ -496,6 +498,7 @@
       '<a class="tab" href="#/wiki/topics">专题总结</a>' +
       '<a class="tab" href="#/wiki/cheatsheets">速查表</a>' +
       '<a class="tab" href="#/mock">模拟面试</a>' +
+      (DATA.project ? '<a class="tab" href="#/project">项目实战案例</a>' : '') +
       '<a class="tab" href="#/wiki/interview">面试题库</a>' +
       '<a class="tab" href="#/algo">算法面试轨道</a>' +
       '<a class="tab" href="#/ladder">项目阶梯</a>' +
@@ -519,6 +522,29 @@
     }
     html.push('</div>');
     html.push('</section>');
+
+    // 项目实战案例：一份真实项目的标准答案（和上面"练的设施"配套）
+    if (DATA.project) {
+      html.push('<section class="page-body">');
+      html.push('<div class="page-head"><div><h2 class="page-title">再看一份标准答案：项目实战案例</h2>' +
+        '<p class="page-sub">上面那套题解决「怎么练」，这一份解决「好的回答长什么样」——' +
+        '拿一个真实的 Go Agent 平台从头拆到源码行号</p></div>' +
+        '<div class="page-actions"><a class="btn btn-primary" href="#/project">进入</a></div></div>');
+      html.push('<div class="stat-grid">');
+      var projectStats = [
+        [DATA.project.stats.documents, '篇复盘文档'],
+        [DATA.project.stats.lines.toLocaleString(), '行内容'],
+        [DATA.project.stats.dialogue, '轮面试对话'],
+        [DATA.project.stats.exercises, '道练习题']
+      ];
+      for (var ps = 0; ps < projectStats.length; ps++) {
+        html.push('<div class="stat-card"><span class="stat-num">' +
+          h(projectStats[ps][0]) + '</span><span class="stat-label">' +
+          h(projectStats[ps][1]) + '</span></div>');
+      }
+      html.push('</div>');
+      html.push('</section>');
+    }
 
     return html.join('');
   };
@@ -2961,13 +2987,720 @@
     return true;
   }
 
+  /* -------------------------------------------------------- 项目实战案例轨道 */
+
+  /**
+   * content-project.js 有 800KB，只在真正要看这块内容时才加载。
+   * 和 AlgoBundle 一个套路，只是包更大、内容更聚焦。
+   */
+  var ProjectBundle = {
+    loading: false,
+    callbacks: [],
+
+    ensure: function (done) {
+      if (window.AZTO_PROJECT) return done();
+      this.callbacks.push(done);
+      if (this.loading) return;
+      this.loading = true;
+
+      var self = this;
+      var script = document.createElement('script');
+      script.src = 'content-project.js';
+      script.onload = function () {
+        self.loading = false;
+        var callbacks = self.callbacks.slice();
+        self.callbacks = [];
+        for (var i = 0; i < callbacks.length; i++) callbacks[i]();
+      };
+      script.onerror = function () {
+        self.loading = false;
+        self.callbacks = [];
+        toast('项目实战案例内容没加载成功 —— 先在项目根目录跑一次 python web/_build.py');
+      };
+      document.head.appendChild(script);
+    }
+  };
+
+  function projectLoading() {
+    return '<div class="view"><div class="page-body">' +
+      '<p class="empty loading">正在加载项目实战案例（11 篇文档 + 76 道练习题，约 800 KB）…</p>' +
+      '</div></div>';
+  }
+
+  /**
+   * 练习记录。**故意和章节 Progress 分开存** —— 这里记的是"这道题我能不能讲出来"，
+   * 和"这一章我跑通了没"是两件事，混在一起会让两边的百分比都失真。
+   */
+  var ProjectProgress = {
+    KEY: 'azto.project.review.v1',
+    data: { items: {} },
+
+    load: function () {
+      try {
+        var raw = localStorage.getItem(this.KEY);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && parsed.items) this.data = parsed;
+        }
+      } catch (err) { /* 隐私模式下降级为内存态 */ }
+      if (!this.data.items) this.data.items = {};
+    },
+
+    save: function () {
+      try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (err) { /* 忽略 */ }
+    },
+
+    scoreOf: function (key) {
+      var item = this.data.items[key];
+      return item ? item.score : null;
+    },
+
+    /** score: 0 不会 / 1 半懂 / 2 掌握 */
+    mark: function (key, score) {
+      this.data.items[key] = { score: score, at: Date.now() };
+      this.save();
+    },
+
+    setStats: function (set) {
+      var queue = projectQueue(set);
+      var done = 0, sum = 0;
+      for (var i = 0; i < queue.length; i++) {
+        var score = this.scoreOf(queue[i].key);
+        if (score === null) continue;
+        done += 1;
+        sum += score;
+      }
+      return {
+        total: queue.length,
+        done: done,
+        rate: queue.length ? done / queue.length : 0,
+        average: done ? sum / (done * 2) : 0
+      };
+    },
+
+    percent: function () {
+      var project = window.AZTO_PROJECT;
+      if (!project) return 0;
+      var total = 0, done = 0;
+      for (var i = 0; i < project.practice.length; i++) {
+        var stats = this.setStats(project.practice[i]);
+        total += stats.total;
+        done += stats.done;
+      }
+      return total ? Math.round(done / total * 100) : 0;
+    },
+
+    /** 所有标成「不会」的题 —— 面试时最可能被问穿的就是这些 */
+    weakList: function () {
+      var project = window.AZTO_PROJECT;
+      if (!project) return [];
+      var out = [];
+      for (var i = 0; i < project.practice.length; i++) {
+        var set = project.practice[i];
+        var queue = projectQueue(set);
+        for (var j = 0; j < queue.length; j++) {
+          if (this.scoreOf(queue[j].key) === 0) {
+            out.push({ set: set.title, group: queue[j].group, prompt: queue[j].prompt });
+          }
+        }
+      }
+      return out;
+    },
+
+    clearSet: function (setId) {
+      for (var key in this.data.items) {
+        if (key.indexOf(setId + '/') === 0) delete this.data.items[key];
+      }
+      this.save();
+    },
+
+    exportJson: function () {
+      downloadJson('project-practice-' + new Date().toISOString().slice(0, 10) + '.json', {
+        project: 'Agent Zero To One · 项目实战案例练习记录',
+        exportedAt: new Date().toISOString(),
+        percent: this.percent(),
+        items: this.data.items
+      });
+    },
+
+    importJson: function (text) {
+      var parsed = JSON.parse(text);
+      var incoming = parsed && parsed.items ? parsed.items : parsed;
+      if (!incoming || typeof incoming !== 'object') throw new Error('格式不对');
+      this.data.items = incoming;
+      this.save();
+    }
+  };
+
+  function findProjectSet(id) {
+    var project = window.AZTO_PROJECT;
+    if (!project) return null;
+    for (var i = 0; i < project.practice.length; i++) {
+      if (project.practice[i].id === id) return project.practice[i];
+    }
+    return null;
+  }
+
+  function findProjectDoc(id) {
+    var project = window.AZTO_PROJECT;
+    if (!project) return null;
+    for (var i = 0; i < project.documents.length; i++) {
+      if (project.documents[i].id === id) return project.documents[i];
+    }
+    return null;
+  }
+
+  /** 把一套题拍平成一维队列，附带分组名（练习器的游标走的就是这个） */
+  function projectQueue(set, groupName) {
+    var queue = [];
+    for (var i = 0; i < set.rounds.length; i++) {
+      var group = set.rounds[i];
+      if (groupName && group.name !== groupName) continue;
+      for (var j = 0; j < group.questions.length; j++) {
+        var question = group.questions[j];
+        queue.push({
+          key: set.id + '/' + group.name + '/' + question.id,
+          id: question.id,
+          prompt: question.prompt,
+          body: question.body,
+          group: group.name
+        });
+      }
+    }
+    return queue;
+  }
+
+  /** 项目实战案例首页：11 篇文档 + 三套练习入口 + 已练进度 */
+  views.projectIndex = function (parts) {
+    var index = DATA.project;
+    if (!index) return notFound('这份材料没有随项目一起构建');
+    if (!window.AZTO_PROJECT) {
+      ProjectBundle.ensure(function () { route(); });
+      return projectLoading();
+    }
+
+    var project = window.AZTO_PROJECT;
+    var percent = ProjectProgress.percent();
+    var html = [];
+    html.push(pageHead(project.meta.title, h(project.meta.tagline),
+      '<a class="btn btn-ghost btn-sm" href="#/project/readme">模块说明</a>'));
+
+    html.push('<div class="page-body">');
+    html.push('<p class="page-sub">' + h(project.meta.subtitle) + '</p>');
+    html.push('<div class="progress-bar" style="margin-top:14px"><div class="progress-fill" style="width:' +
+      percent + '%"></div></div>');
+    html.push('<p class="page-sub" style="margin-top:8px">练习进度 <b>' + percent + '%</b>' +
+      '　·　' + project.stats.exercises + ' 道题　·　' + project.stats.lines.toLocaleString() + ' 行文档' +
+      '</p>');
+    html.push('</div>');
+
+    // 三套练习
+    html.push('<div class="page-body"><h2 class="page-title">三套练习</h2>');
+    html.push('<p class="page-sub">先自己讲一遍，再展开参考对照。答不上来的会被记进薄弱清单。</p>');
+    var cards = [];
+    for (var p = 0; p < project.practice.length; p++) {
+      var set = project.practice[p];
+      var stats = ProjectProgress.setStats(set);
+      cards.push('<article class="card">' +
+        '<h3 class="card-title">' + h(set.title) + '</h3>' +
+        '<p class="card-summary">' + h(set.desc) + '</p>' +
+        '<div class="progress-bar" style="margin:12px 0"><div class="progress-fill" style="width:' +
+          Math.round(stats.rate * 100) + '%"></div></div>' +
+        '<div class="card-foot"><span class="badge">已练 ' + stats.done + '/' + stats.total + '</span>' +
+        '<a class="btn btn-sm btn-primary" href="#/project/practice/' + h(set.id) + '">进入</a></div>' +
+        '</article>');
+    }
+    html.push(cardGrid(cards));
+    html.push('</div>');
+
+    // 文档
+    html.push('<div class="page-body"><h2 class="page-title">复盘文档</h2>');
+    html.push('<p class="page-sub">按顺序读，或者卡在哪块直接跳过去</p>');
+    var docCards = project.documents.map(function (doc) {
+      return '<a class="card" href="#/project/doc/' + encodeURIComponent(doc.id) + '">' +
+        '<h3 class="card-title">' + h(doc.title) + '</h3>' +
+        '<p class="card-summary">' + h(doc.summary) + '</p>' +
+        '<div class="card-foot"><span class="badge">' + doc.lines + ' 行</span>' +
+        '<span class="card-size">' + h(doc.file) + '</span></div></a>';
+    });
+    html.push(cardGrid(docCards));
+    html.push('</div>');
+
+    return html.join('');
+  };
+
+  /** 模块说明（07-项目实战案例/README.md）——它讲清了这块内容和模拟面试的分工 */
+  views.projectReadme = function () {
+    if (!window.AZTO_PROJECT) {
+      ProjectBundle.ensure(function () { route(); });
+      return projectLoading();
+    }
+    var project = window.AZTO_PROJECT;
+    if (!project.readme) return notFound('模块说明没随内容一起构建');
+
+    var doc = {
+      title: '模块说明',
+      summary: '这块内容和模拟面试的分工、三套练习怎么用',
+      file: '07-项目实战案例/README.md',
+      lines: project.readme.split('\n').length,
+      markdown: project.readme
+    };
+    return '<div class="view">' + projectReaderShell(doc, [], 0) + '</div>';
+  };
+
+  views.projectDoc = function (parts) {
+    if (!window.AZTO_PROJECT) {
+      ProjectBundle.ensure(function () { route(); });
+      return projectLoading();
+    }
+
+    var id = decodeURIComponent(parts.slice(2).join('/'));
+    var doc = findProjectDoc(id);
+    if (!doc) return notFound('找不到这份文档：' + h(id));
+
+    var index = window.AZTO_PROJECT.documents.indexOf(doc);
+    return '<div class="view">' + projectReaderShell(doc, window.AZTO_PROJECT.documents, index) + '</div>';
+  };
+
+  /**
+   * 把项目实战案例文档里的 [[wikilink]] 变成真链接。
+   *
+   * 全局的 wikilink 一律渲染成不可点的 span（Obsidian 里的引用，网页上没有对应页面）。
+   * 但项目实战案例里的引用基本都在本模块内部，既指得到、也应该点得动。
+   * 只处理下面两类：指向本模块目录的，和少数几个已知的模块外目标。
+   * 其它文档的 wikilink 行为完全不变。
+   */
+  function projectLinkify(html) {
+    var PREFIX = '07-项目实战案例/';
+    // 模块外的目标：这些在网页上有对应页面，值得连通
+    var OUTSIDE = {
+      '06-模拟面试/README': '#/mock',
+      '06-模拟面试': '#/mock',
+      '学习中枢': '#/hub'
+    };
+    var WIKI = /<span class="wikilink" title="([^"]+)">([^<]*)<\/span>/g;
+
+    return html.replace(WIKI, function (whole, target, label) {
+      if (Object.prototype.hasOwnProperty.call(OUTSIDE, target)) {
+        return '<a class="wikilink" href="' + OUTSIDE[target] + '">' + label + '</a>';
+      }
+      if (target.indexOf(PREFIX) !== 0) return whole;
+      var rest = target.slice(PREFIX.length);
+      var href = rest === 'README'
+        ? '#/project/readme'
+        : '#/project/doc/' + encodeURIComponent(rest);
+      return '<a class="wikilink" href="' + href + '">' + label + '</a>';
+    });
+  }
+
+  /** 阅读器外壳。和章节阅读器同构，但上一篇/下一篇走的是本模块自己的顺序。 */
+  function projectReaderShell(doc, siblings, index) {
+    var html = [];
+    html.push('<div class="page-body">');
+    html.push('<article class="reader">');
+    html.push('<div class="reader-head">');
+    html.push('<div class="reader-crumb"><a href="#/project">项目实战案例</a> / 复盘文档</div>');
+    html.push('<h1 class="reader-title">' + h(doc.title) + '</h1>');
+    html.push('<p class="page-sub">' + h(doc.summary) + '</p>');
+    html.push('<div class="reader-meta"><span class="meta-chip">' + doc.lines + ' 行</span>' +
+      '<span class="meta-chip mono">' + h(doc.file) + '</span></div>');
+    html.push('</div>');
+
+    var toc = MD.extractToc(doc.markdown);
+    html.push('<div class="reader-body">');
+    if (toc.length) {
+      html.push('<aside class="reader-toc">');
+      html.push('<div class="toc-title">本页目录</div>');
+      for (var t = 0; t < toc.length; t++) {
+        html.push('<a class="toc-item lv' + toc[t].level + '" data-anchor="' + h(toc[t].id) + '" href="#' +
+          h(toc[t].id) + '">' + h(toc[t].text) + '</a>');
+      }
+      html.push('</aside>');
+    }
+    html.push('<div class="markdown">' + projectLinkify(MD.render(doc.markdown)) + '</div>');
+    html.push('</div>');
+
+    if (siblings && siblings.length) {
+      var prev = index > 0 ? siblings[index - 1] : null;
+      var next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
+      html.push('<nav class="reader-nav">');
+      html.push(prev
+        ? '<a class="reader-prev" href="#/project/doc/' + encodeURIComponent(prev.id) + '">' +
+          '<span class="rn-dir">← 上一篇</span><span class="rn-title">' + h(prev.title) + '</span></a>'
+        : '<span class="reader-prev"></span>');
+      html.push(next
+        ? '<a class="reader-next" href="#/project/doc/' + encodeURIComponent(next.id) + '">' +
+          '<span class="rn-dir">下一篇 →</span><span class="rn-title">' + h(next.title) + '</span></a>'
+        : '<span class="reader-next"></span>');
+      html.push('</nav>');
+    }
+    html.push('</article>');
+    html.push('</div>');
+    return html.join('');
+  }
+
+  /** 一套练习的入口页：进度 + 按分组练 + 题目清单（带状态标记） */
+  views.projectPractice = function (parts) {
+    if (!window.AZTO_PROJECT) {
+      ProjectBundle.ensure(function () { route(); });
+      return projectLoading();
+    }
+    var set = findProjectSet(decodeURIComponent(parts[2] || ''));
+    if (!set) return notFound('找不到这套练习');
+
+    var stats = ProjectProgress.setStats(set);
+    var html = [];
+    html.push(pageHead(set.title, h(set.desc),
+      '<button class="btn btn-ghost btn-sm" id="projectSetReset" data-set="' + h(set.id) + '">清空这套记录</button>'));
+
+    html.push('<div class="page-body">');
+    html.push('<div class="progress-bar"><div class="progress-fill" style="width:' +
+      Math.round(stats.rate * 100) + '%"></div></div>');
+    html.push('<p class="page-sub" style="margin-top:10px">已练 <b>' + stats.done + '</b> / ' + stats.total +
+      ' 题　·　平均掌握度 <b>' + Math.round(stats.average * 100) + '%</b></p>');
+    html.push('<div class="page-actions" style="margin-top:16px;margin-bottom:22px">' +
+      '<a class="btn btn-primary" href="#/project/run/' + h(set.id) + '/all">' +
+      (stats.done ? '继续练习（全部题目）' : '开始练习（全部题目）') + '</a>' +
+      (stats.done ? '<a class="btn btn-ghost" href="#/project/run/' + h(set.id) + '/weak">只练没答上的</a>' : '') +
+      '</div>');
+    html.push('</div>');
+
+    html.push('<div class="page-body"><h2 class="page-title">按分组练</h2>');
+    var cards = [];
+    for (var i = 0; i < set.rounds.length; i++) {
+      var group = set.rounds[i];
+      var queue = projectQueue(set, group.name);
+      var done = 0;
+      for (var j = 0; j < queue.length; j++) {
+        if (ProjectProgress.scoreOf(queue[j].key) !== null) done += 1;
+      }
+      cards.push('<a class="card" href="#/project/run/' + h(set.id) + '/' + encodeURIComponent(group.name) + '">' +
+        '<h3 class="card-title">' + h(group.name) + '</h3>' +
+        '<p class="card-summary">' + queue.length + ' 题</p>' +
+        '<div class="card-foot"><span class="badge">已练 ' + done + '/' + queue.length + '</span></div></a>');
+    }
+    html.push(cardGrid(cards));
+    html.push('</div>');
+
+    // 题目清单：文案给完整原文，交给 .problem-chip 的 CSS 省略号收尾
+    // （按字数切会把问句从中间砍断，读起来像坏掉的数据）
+    html.push('<div class="page-body"><h2 class="page-title">题目清单</h2>');
+    for (var g = 0; g < set.rounds.length; g++) {
+      var round = set.rounds[g];
+      html.push('<div class="q-section-title" style="margin-top:14px">' + h(round.name) + '</div>');
+      html.push('<div class="problem-grid">');
+      for (var k = 0; k < round.questions.length; k++) {
+        var question = round.questions[k];
+        var score = ProjectProgress.scoreOf(set.id + '/' + round.name + '/' + question.id);
+        var cls = score === 2 ? 'is-solved' : (score === 1 ? 'is-attempted' : (score === 0 ? 'is-weak' : ''));
+        var mark = score === 2 ? ' ✓' : (score === 1 ? ' ·' : (score === 0 ? ' ✗' : ''));
+        html.push('<a class="problem-chip ' + cls + '" href="#/project/run/' + h(set.id) + '/' +
+          encodeURIComponent(round.name) + '?q=' + encodeURIComponent(question.id) + '" title="' +
+          h(question.prompt) + '">' +
+          '<span class="problem-no">' + h(question.id) + '</span>' +
+          '<span class="problem-name">' + ri(question.prompt) + mark + '</span></a>');
+      }
+      html.push('</div>');
+    }
+    html.push('</div>');
+
+    // 上一套 / 下一套
+    var all = window.AZTO_PROJECT.practice;
+    var here = all.indexOf(set);
+    html.push('<div class="page-body"><div class="page-actions">');
+    if (here > 0) {
+      html.push('<a class="btn btn-ghost btn-sm" href="#/project/practice/' + h(all[here - 1].id) + '">← ' +
+        h(all[here - 1].title) + '</a>');
+    }
+    if (here >= 0 && here < all.length - 1) {
+      html.push('<a class="btn btn-ghost btn-sm" href="#/project/practice/' + h(all[here + 1].id) + '">' +
+        h(all[here + 1].title) + ' →</a>');
+    }
+    html.push('</div></div>');
+
+    return html.join('');
+  };
+
+  /** 练习运行器。和 MockRunner 同构：先答 → 展开 → 自评 → 报告。 */
+  var ProjectRunner = {
+    set: null,
+    queue: [],
+    index: 0,
+    filter: 'all',
+    revealed: {},
+
+    start: function (setId, filter, jumpTo) {
+      var set = findProjectSet(setId);
+      if (!set) return false;
+
+      var queue;
+      if (filter === 'all') {
+        queue = projectQueue(set);
+      } else if (filter === 'weak') {
+        queue = projectQueue(set).filter(function (item) {
+          return ProjectProgress.scoreOf(item.key) === 0;
+        });
+      } else {
+        queue = projectQueue(set, decodeURIComponent(filter));
+      }
+      if (!queue.length) {
+        queue = projectQueue(set);   // 筛选后为空（比如还没标过「不会」）就退回全部
+        filter = 'all';
+      }
+
+      this.set = set;
+      this.queue = queue;
+      this.filter = filter;
+      this.index = 0;
+      this.revealed = {};
+
+      if (jumpTo) {
+        for (var i = 0; i < queue.length; i++) {
+          if (queue[i].id === jumpTo) { this.index = i; break; }
+        }
+      }
+      return true;
+    },
+
+    current: function () { return this.queue[this.index]; },
+
+    render: function () {
+      var stage = document.getElementById('projectStage');
+      if (!this.set || !stage) return;
+      if (this.index >= this.queue.length) return this.renderReport();
+
+      var item = this.current();
+      var score = ProjectProgress.scoreOf(item.key);
+      var revealed = !!this.revealed[item.key];
+
+      var count = document.getElementById('projectCount');
+      if (count) count.textContent = '第 ' + (this.index + 1) + ' / ' + this.queue.length + ' 题';
+      var bar = document.getElementById('projectBar');
+      if (bar) bar.style.width = Math.round(this.index / this.queue.length * 100) + '%';
+
+      var html = [];
+      html.push('<article class="q-card">');
+      html.push('<div class="q-meta">' +
+        '<span class="meta-chip">' + h(item.id) + '</span>' +
+        '<span class="meta-chip">' + h(item.group) + '</span>' +
+        (score !== null ? '<span class="meta-chip">上次自评 ' + h(RATE_LABEL[score]) + '</span>' : '') +
+        '</div>');
+      html.push('<h2 class="q-prompt">' + ri(item.prompt) + '</h2>');
+      html.push('<p class="q-hint">' +
+        (this.set.mode === 'dialogue'
+          ? '先自己开口答一遍（真的说出来，或在纸上写要点），再展开面试者的回答与点评对照。'
+          : '先自己答一遍，再展开参考对照。') + '</p>');
+
+      if (!revealed) {
+        html.push('<div class="q-actions"><button class="btn btn-primary" id="projectReveal">' +
+          '我答完了，看参考</button></div>');
+      } else {
+        html.push('<div class="q-reveal"><div class="markdown">' + MD.render(item.body) + '</div></div>');
+        html.push('<div class="rate-row"><span class="rate-label">自评这一题：</span>');
+        for (var i = 0; i < RATE_OPTIONS.length; i++) {
+          var rate = RATE_OPTIONS[i];
+          html.push('<button class="rate-btn rate-' + rate[0] + (score === rate[0] ? ' active' : '') +
+            '" data-score="' + rate[0] + '">' +
+            '<strong>' + rate[1] + '</strong><small>' + rate[2] + '</small></button>');
+        }
+        html.push('</div>');
+      }
+
+      html.push('<div class="runner-nav">');
+      html.push(this.index > 0
+        ? '<button class="btn btn-ghost btn-sm" id="projectPrev">← 上一题</button>'
+        : '<span></span>');
+      html.push('<div class="runner-nav-right">' +
+        '<button class="btn btn-ghost btn-sm" id="projectSkip">跳过</button>' +
+        '<button class="btn btn-primary btn-sm" id="projectNext">' +
+        (this.index === this.queue.length - 1 ? '提交并看报告' : '下一题 →') + '</button>' +
+        '</div>');
+      html.push('</div>');
+      html.push('</article>');
+
+      stage.innerHTML = html.join('');
+      this.wire();
+    },
+
+    renderReport: function () {
+      var stage = document.getElementById('projectStage');
+      if (!stage) return;
+
+      var queue = this.queue;
+      var counts = { 0: 0, 1: 0, 2: 0 };
+      var weak = [];
+      for (var i = 0; i < queue.length; i++) {
+        var score = ProjectProgress.scoreOf(queue[i].key);
+        if (score === null) score = 0;
+        counts[score] += 1;
+        if (score !== 2) {
+          var entry = { id: queue[i].id, prompt: queue[i].prompt, group: queue[i].group, score: score };
+          // 完全不会的排前面：那才是真正卡住的题
+          if (score === 0) weak.unshift(entry); else weak.push(entry);
+        }
+      }
+      var total = queue.length;
+      var percent = total ? Math.round((counts[2] * 2 + counts[1]) / (total * 2) * 100) : 0;
+
+      var html = [];
+      html.push('<article class="report">');
+      html.push('<h2 class="report-title">这套练完了</h2>');
+      html.push('<div class="report-score">' +
+        '<span class="report-num">' + percent + '<small>%</small></span>' +
+        '<span class="report-rate">掌握度（掌握=2 分，半懂=1 分）</span></div>');
+
+      html.push('<div class="q-section"><div class="q-section-title">分布</div>');
+      var rows = [['掌握', counts[2]], ['半懂', counts[1]], ['不会', counts[0]]];
+      for (var r = 0; r < rows.length; r++) {
+        var pct = total ? Math.round(rows[r][1] / total * 100) : 0;
+        html.push('<div class="dim-row"><span class="dim-name">' + rows[r][0] + '</span>' +
+          '<span class="dim-bar"><i style="width:' + pct + '%"></i></span>' +
+          '<span class="dim-value">' + rows[r][1] + '</span></div>');
+      }
+      html.push('</div>');
+
+      if (weak.length) {
+        html.push('<div class="q-section minus"><div class="q-section-title">' +
+          '要回去补的 ' + weak.length + ' 题（不会排在最前）</div><ul class="q-list">');
+        for (var w = 0; w < weak.length && w < 24; w++) {
+          html.push('<li><span class="mono">' + h(RATE_LABEL[weak[w].score]) + '</span>　' +
+            h(weak[w].id) + '　' + ri(weak[w].prompt) +
+            '　<span class="mono">' + h(weak[w].group) + '</span></li>');
+        }
+        if (weak.length > 24) html.push('<li>… 还有 ' + (weak.length - 24) + ' 题</li>');
+        html.push('</ul></div>');
+      } else {
+        html.push('<div class="q-section ok"><div class="q-section-title">全场都是「掌握」</div>' +
+          '<p>可以换一套练，或者去读还没读过的复盘文档。</p></div>');
+      }
+
+      html.push('<div class="q-section"><div class="q-section-title">下一步</div><ul class="q-list">' +
+        '<li>「不会」的题：回到对应的深挖文档读一遍，然后<b>合上材料自己讲一遍</b></li>' +
+        '<li>「半懂」的题：问题不在知识，在表达 —— 练「结论 → 依据（带行号）→ 边界」三句话</li>' +
+        '<li>同一套题隔一天再打一次，<b>对比变化比单次分数有意义</b></li>' +
+        '<li>答不上来的题会一直待在 <a href="#/project/practice/' + h(this.set.id) + '">这套练习</a> 的薄弱清单里</li>' +
+        '</ul></div>');
+
+      html.push('<div class="runner-nav">' +
+        '<a class="btn btn-ghost" href="#/project/practice/' + h(this.set.id) + '">回到练习首页</a>' +
+        '<div class="runner-nav-right">' +
+        '<a class="btn btn-primary" href="#/project/run/' + h(this.set.id) + '/weak">只练没答上的</a>' +
+        '</div></div>');
+      html.push('</article>');
+
+      stage.innerHTML = html.join('');
+      var bar = document.getElementById('projectBar');
+      if (bar) bar.style.width = '100%';
+      var count = document.getElementById('projectCount');
+      if (count) count.textContent = '已完成 ' + total + ' 题';
+    },
+
+    wire: function () {
+      var self = this;
+      var bind = function (id, handler) {
+        var element = document.getElementById(id);
+        if (element) element.addEventListener('click', handler);
+      };
+
+      bind('projectReveal', function () {
+        self.revealed[self.current().key] = true;
+        self.render();
+      });
+
+      var rateButtons = document.querySelectorAll('.rate-btn');
+      for (var i = 0; i < rateButtons.length; i++) {
+        rateButtons[i].addEventListener('click', function (event) {
+          ProjectProgress.mark(self.current().key, parseInt(event.currentTarget.getAttribute('data-score'), 10));
+          self.render();
+        });
+      }
+
+      bind('projectPrev', function () {
+        if (self.index > 0) { self.index -= 1; self.render(); }
+      });
+
+      bind('projectSkip', function () {
+        // 跳过记为「不会」，不是不记录 —— 跳过本身就是信息：一道题你不想展开、
+        // 不想自评，说明你没准备好面对它，面试官不会给你跳过的机会。
+        // 这也让报告的分布和薄弱清单一致（否则报告把没自评的算成不会，
+        // 薄弱清单里却找不到它们）。
+        if (self.index < self.queue.length) {
+          var item = self.current();
+          if (ProjectProgress.scoreOf(item.key) === null) ProjectProgress.mark(item.key, 0);
+          self.index += 1;
+          self.render();
+        }
+      });
+
+      bind('projectNext', function () {
+        // 没自评就按「不会」计 —— 跳过评分会让报告失真
+        var item = self.current();
+        if (ProjectProgress.scoreOf(item.key) === null) ProjectProgress.mark(item.key, 0);
+        self.index += 1;
+        self.render();
+      });
+    }
+  };
+
+  var RATE_OPTIONS = [
+    [0, '不会', '答不上来 / 完全没准备'],
+    [1, '半懂', '能说一部分，但经不起追问'],
+    [2, '掌握', '能说清机制 + 能答追问']
+  ];
+  var RATE_LABEL = { 0: '不会', 1: '半懂', 2: '掌握' };
+
+  views.projectRun = function (parts) {
+    if (!window.AZTO_PROJECT) {
+      ProjectBundle.ensure(function () { route(); });
+      return projectLoading();
+    }
+
+    var setId = decodeURIComponent(parts[2] || '');
+    var filter = parts[3] ? decodeURIComponent(parts[3]) : 'all';
+    var jump = null;
+    if (location.hash.indexOf('?q=') > 0) jump = decodeURIComponent(location.hash.split('?q=')[1]);
+
+    if (!ProjectRunner.start(setId, filter, jump)) return notFound('找不到这套练习');
+
+    var set = ProjectRunner.set;
+    var html = [];
+    html.push('<div class="view runner">');
+    html.push('<div class="runner-head">');
+    html.push('<div class="runner-progress">' +
+      '<span class="runner-session">' + h(set.title) + '</span>' +
+      '<span class="runner-count" id="projectCount"></span>' +
+      '<span class="runner-timer">' +
+      h(filter === 'all' ? '全部题目' : (filter === 'weak' ? '只练没答上的' : decodeURIComponent(filter))) +
+      '</span></div>');
+    html.push('<a class="btn btn-sm btn-ghost" href="#/project/practice/' + h(set.id) + '">退出</a>');
+    html.push('<div class="progress-bar" style="flex:1 1 100%"><div class="progress-fill" id="projectBar"></div></div>');
+    html.push('</div>');
+    html.push('<div id="projectStage"></div>');
+    html.push('</div>');
+    return html.join('');
+  };
+
+  var ProjectPracticeView = {
+    /** 运行器渲染完之后调用（wireViewEvents 里接） */
+    mount: function () {
+      if (document.getElementById('projectStage')) ProjectRunner.render();
+    }
+  };
+
   /* ------------------------------------------------------------------ 搜索 */
 
   var Search = {
     index: null,
+    indexedProject: false,
 
     ensure: function () {
-      if (this.index) return this.index;
+      // 项目实战案例在懒加载包里。第一次搜索时它可能还没到，等用户看过那块内容
+      // （包已加载）再重建一次索引，否则那 11 篇文档搜不到。
+      var wantProject = !!window.AZTO_PROJECT;
+      if (this.index && this.indexedProject === wantProject) return this.index;
+      this.index = null;
+      this.indexedProject = wantProject;
+
       var items = [];
       var i, j;
 
@@ -3041,6 +3774,35 @@
           route: '#/mock/docs/' + encodeURIComponent(DATA.mock.documents[i].id),
           text: DATA.mock.documents[i].markdown
         });
+      }
+
+      // 项目实战案例（11 篇复盘文档 + 76 道题）—— 包加载了才进索引
+      if (window.AZTO_PROJECT) {
+        var project = window.AZTO_PROJECT;
+        for (i = 0; i < project.documents.length; i++) {
+          items.push({
+            kind: '项目复盘',
+            title: project.documents[i].title,
+            route: '#/project/doc/' + encodeURIComponent(project.documents[i].id),
+            text: project.documents[i].markdown
+          });
+        }
+        for (i = 0; i < project.practice.length; i++) {
+          var pset = project.practice[i];
+          for (j = 0; j < pset.rounds.length; j++) {
+            var pgroup = pset.rounds[j];
+            for (var k = 0; k < pgroup.questions.length; k++) {
+              var pquestion = pgroup.questions[k];
+              items.push({
+                kind: pset.title + ' · ' + pquestion.id,
+                title: pquestion.prompt,
+                route: '#/project/run/' + pset.id + '/' + encodeURIComponent(pgroup.name) +
+                  '?q=' + encodeURIComponent(pquestion.id),
+                text: pquestion.prompt + '\n' + pquestion.body
+              });
+            }
+          }
+        }
       }
 
       // 预先小写，避免每次按键都转换 1.4MB 文本
@@ -3152,6 +3914,12 @@
       view = parts.length >= 2 ? views.rawItem : views.raw;
     } else if (head === 'algo') {
       view = parts.length >= 3 ? views.algoItem : views.algoIndex;
+    } else if (head === 'project') {
+      if (parts[1] === 'doc') view = views.projectDoc;
+      else if (parts[1] === 'readme') view = views.projectReadme;
+      else if (parts[1] === 'practice') view = views.projectPractice;
+      else if (parts[1] === 'run') view = views.projectRun;
+      else view = views.projectIndex;
     } else if (head === 'judge') {
       if (parts[1] === 'records') view = views.judgeRecords;
       else view = parts.length >= 2 ? views.judgeProblem : views.judgeIndex;
@@ -3233,6 +4001,19 @@
     // ---- 模拟面试：运行器 ----
     if ($('mockStage') && MockRunner.run) {
       MockRunner.mount();
+    }
+
+    // ---- 项目实战案例：练习运行器 + 清空这套记录 ----
+    ProjectPracticeView.mount();
+    var projectReset = $('projectSetReset');
+    if (projectReset) {
+      projectReset.addEventListener('click', function (event) {
+        var setId = event.currentTarget.getAttribute('data-set');
+        if (!window.confirm('清空这套练习的记录？')) return;
+        ProjectProgress.clearSet(setId);
+        route();
+        toast('已清空');
+      });
     }
 
     // ---- 在线判题（探测服务 + 挂编辑器）----
@@ -3399,6 +4180,7 @@
   function init() {
     Progress.load();
     MockStore.load();
+    ProjectProgress.load();
     Theme.init();
     renderNav();
     route();

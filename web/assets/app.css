@@ -1745,6 +1745,8 @@ hr { border: 0; }
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line);
 }
+/* 右侧成组：第一题没有「上一题」时，「跳过」不会孤零零飘到中间 */
+.runner-nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
 /* 报告 */
 .report {
@@ -2027,3 +2029,7 @@ hr { border: 0; }
 .ai-config-msg.is-ok { color: var(--success); }
 .ai-config-msg.is-bad { color: var(--danger); }
 .ai-config-msg.is-pending { color: var(--text-muted); }
+
+/* 项目实战案例内部的 wikilink 是真链接（其余文档的 wikilink 仍不可点） */
+a.wikilink { cursor: pointer; color: var(--primary-text); }
+a.wikilink:hover { border-bottom-color: var(--primary); color: var(--primary-text); }

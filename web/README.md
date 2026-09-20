@@ -59,7 +59,7 @@ python -m http.server 8000
 
 ```bash
 cd ..                       # 回到项目根目录
-python web/_build.py        # 重新生成 web/content.js
+python web/_build.py        # 重新生成 web/content.js 等三个内容包
 ```
 
 只改 CSS / JS 不需要重新构建，直接刷新页面即可。
@@ -69,7 +69,16 @@ python web/_build.py        # 重新生成 web/content.js
 1. 扫描 `docs/`、`02-Wiki/`、`01-Raw/`、`00-配置/`、`03-学习笔记/`、`学习中枢.md`、`README.md`
 2. 从章节文档的头部提取结构化元信息：章节号、标题、**本章目标**、**预计用时**、**前置章节**、**配套代码**
 3. 按 5 个阶段和 16 周给章节归组（映射写在脚本顶部的 `STAGES` / `WEEK_CHAPTERS` 里）
-4. 把全部 Markdown 原文（约 1.4MB）连同元信息一起输出成 `web/content.js`
+4. 把全部 Markdown 原文（约 1.6MB）连同元信息一起输出成 `web/content.js`
+5. 另外输出两个**按需懒加载**的包：`content-algo.js`（算法轨道）和 `content-project.js`（项目实战案例）。
+   它们不进首屏，用户点到那块内容时页面才用 `<script src>` 去取
+
+**为什么算法轨道和项目实战案例要单独成包？** 首屏快。这两个包加起来接近 2MB，而绝大多数
+用户第一次打开只是想知道"这是什么东西"。分开之后，首页只需要加载主包。
+
+> **懒加载包的一个副作用：** 搜索索引建立在主包上，所以**没加载过的懒加载内容搜不到**。
+> 项目实战案例这一块做了处理 —— 一旦你打开过那块内容（包已加载），搜索会自动重建索引，
+> 那 11 篇文档和 76 道题就能搜到了。
 
 `_build.py --check` 可以只打印解析结果、不写文件，用来确认新章节有没有被正确识别：
 
@@ -95,12 +104,14 @@ python web/_build.py --check
 ```
 web/
 ├── index.html            # 应用外壳：顶栏、侧栏容器、启动画面
-├── content.js            # 【自动生成】全部 Markdown + 元信息，约 1.4 MB
+├── content.js            # 【自动生成】全部 Markdown + 元信息，约 1.6 MB
+├── content-algo.js       # 【自动生成】算法轨道（13 专题 + 100 题解 + 14 天笔记），按需懒加载
+├── content-project.js    # 【自动生成】项目实战案例（11 篇复盘 + 76 道题），按需懒加载
 ├── _build.py             # 构建脚本（Python 3.9+，只用标准库）
 ├── _test_md.js           # 渲染器测试（node web/_test_md.js，27 项检查）
 └── assets/
     ├── app.css           # 全部样式：主题变量、深色模式、响应式、打印
-    ├── app.js            # 应用逻辑：路由、进度存储、搜索、阅读器
+    ├── app.js            # 应用逻辑：路由、进度存储、搜索、阅读器、练习器
     └── markdown.js       # 极简 Markdown 渲染器（约 600 行，零依赖）
 ```
 

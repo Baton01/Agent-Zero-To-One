@@ -5,12 +5,13 @@
     浏览器在 file:// 协议下禁止 fetch 本地文件（CORS）。所以网页要能"双击直接打开"，
     内容就必须在构建期嵌进 .js 文件里，用 <script src> 加载 —— 这条路不受 CORS 限制。
 
-输出两个内容包（分开是为了首屏快）：
-    web/content.js        主内容：17 章教程 + 知识库 + 笔记 + 规划 + 模拟面试题库（约 1.5 MB）
-    web/content-algo.js   算法轨道：13 专题 + 100 题目详解 + 14 天笔记（约 1.4 MB，按需懒加载）
+输出三个内容包（分开是为了首屏快）：
+    web/content.js          主内容：17 章教程 + 知识库 + 笔记 + 规划 + 模拟面试题库（约 1.5 MB）
+    web/content-algo.js     算法轨道：13 专题 + 100 题目详解 + 14 天笔记（约 1.4 MB，按需懒加载）
+    web/content-project.js  项目实战案例：11 篇复盘文档 + 3 套题库 76 题（约 800 KB，按需懒加载）
 
 用法：
-    python web/_build.py          # 生成两个内容包
+    python web/_build.py          # 生成三个内容包
     python web/_build.py --check  # 只报告解析结果，不写文件
 """
 
@@ -573,6 +574,197 @@ def parse_algo_track():
 
 
 # ---------------------------------------------------------------------------
+# 项目实战案例（单独成包，网页按需懒加载）
+# ---------------------------------------------------------------------------
+
+#: 模块目录。网页只读这里的 Markdown，"这个模块是什么"靠它的 README。
+PROJECT_DIR_NAME = "07-项目实战案例"
+
+#: 正文清单。顺序就是网页上的阅读顺序。
+PROJECT_DOCS = [
+    ("01-项目速读.md", "项目速读", "面试前 30 分钟，把项目在脑子里过一遍"),
+    ("02-模拟面试-完整对话.md", "模拟面试·完整对话", "34 轮问答，含面试官追问与逐段点评"),
+    ("03-深挖-Agent与工具调用.md", "深挖·Agent 与工具调用", "ReAct 循环、工具设计、MCP 协议"),
+    ("04-深挖-大模型工程.md", "深挖·大模型工程", "LLM 调用、超时重试、RAG 全链路"),
+    ("05-深挖-高并发与分布式.md", "深挖·高并发与分布式", "网关、限流、分布式锁、etcd 热更新"),
+    ("06-简历怎么写.md", "简历工作坊", "能写什么、不能写什么、三个岗位的三套写法"),
+    ("07-追问预演与压力面.md", "追问预演与压力面", "30 个最可能被追问的问题"),
+    ("08-如果重做一次.md", "如果重做一次", "12 个坑的「原因+影响+修法+代价」"),
+    ("证据-代码走查/01-Agent与工具线.md", "证据·Agent 与工具线", "Agent / LLM / 工具 / MCP / Skill 逐文件走查"),
+    ("证据-代码走查/02-网关与并发线.md", "证据·网关与并发线", "网关 / 限流 / Lane / Redis / etcd 逐文件走查"),
+    ("证据-代码走查/03-RAG与工作流线.md", "证据·RAG 与工作流线", "RAG / 工作流引擎 / 可观测 逐文件走查"),
+]
+
+#: 题目的第一句问话。完整正文留在 rest 里（展开后才看到）。
+PROJECT_QUOTE = re.compile(r"^>\s*(.+?)\s*$", re.M)
+
+
+def parse_project_dialogue(text: str):
+    """
+    解析 02-模拟面试-完整对话.md：`## 【环节名】` 分轮，`### QN · …` 分题。
+
+    真正的问句在紧跟标题的第一个引用块里 —— 标题是「Q1 · ReAct 循环怎么写的」，
+    引用块才是面试官的原话。练习器要读出来的是原话。
+    """
+    rounds = []
+    chunks = re.split(r"^##\s+【(.+?)】\s*(.*?)\s*$", text, flags=re.M)
+    for index in range(1, len(chunks), 3):
+        name = chunks[index].strip()
+        body = chunks[index + 2] if index + 2 < len(chunks) else ""
+        questions = []
+        blocks = re.split(r"^###\s+", body, flags=re.M)
+        for order, block in enumerate(blocks[1:], start=1):
+            lines = block.split("\n")
+            heading = lines[0].strip()
+            # 只收真正的题目：`### 哪几轮是加分项` 这类复盘小节不是问题，
+            # 收进来会让练习器里混出「请回答：哪几轮是加分项」这种尴尬的东西。
+            if not re.match(r"^Q\d+\s*·", heading):
+                continue
+            rest = "\n".join(lines[1:]).strip()
+            quote = PROJECT_QUOTE.search(rest)
+            prompt = quote.group(1).strip() if quote else heading
+            prompt = re.sub(r"^[「【]|[」】]$", "", prompt).strip()
+            questions.append({"id": "Q%d" % order, "prompt": prompt, "body": rest})
+        if questions:
+            rounds.append({"name": name, "questions": questions})
+    return rounds
+
+
+def parse_project_followups(text: str):
+    """解析 07-追问预演与压力面.md：`## 第N组：名字（M 题）` 分组，问句就在 `###` 标题里。"""
+    groups = []
+    chunks = re.split(r"^##\s+(第.+?组：[^\n]+)$", text, flags=re.M)
+    for index in range(1, len(chunks), 2):
+        name = re.sub(r"（\d+\s*题）", "", chunks[index]).strip()
+        body = chunks[index + 1] if index + 1 < len(chunks) else ""
+        questions = []
+        for block in re.split(r"^###\s+", body, flags=re.M)[1:]:
+            lines = block.split("\n")
+            heading = lines[0].strip()
+            if "·" in heading:
+                qid, prompt = heading.split("·", 1)
+            else:
+                qid, prompt = "", heading
+            questions.append({
+                "id": qid.strip() or "Q",
+                "prompt": prompt.strip(),
+                "body": "\n".join(lines[1:]).strip(),
+            })
+        if questions:
+            groups.append({"name": name, "questions": questions})
+    return groups
+
+
+def parse_project_pitfalls(text: str):
+    """解析 08-如果重做一次.md：`### 坑 N · 描述` 分节，每节六段（现象/根因/影响/修法/代价/话术）。"""
+    items = []
+    for block in re.split(r"^###\s+", text, flags=re.M)[1:]:
+        lines = block.split("\n")
+        heading = lines[0].strip()
+        # 只收「坑 N · 描述」。作者自己声明 `### 顺手修` 不是坑，别硬塞进练习题。
+        if not re.match(r"^坑\s*\d+\s*·", heading):
+            continue
+        pid, title = heading.split("·", 1)
+        items.append({
+            "id": pid.strip() or "坑",
+            "prompt": title.strip(),
+            "body": "\n".join(lines[1:]).strip(),
+        })
+    return items
+
+
+def first_project_quote(text: str, limit: int = 220) -> str:
+    """取第一段有信息量的引用块当摘要（'<' 开头的示例输出跳过）"""
+    for line in PROJECT_QUOTE.findall(text):
+        clean = re.sub(r"[*`]", "", line).strip()
+        if len(clean) < 12 or clean.startswith(("|", "---", "<", "```")):
+            continue
+        return clean[:limit]
+    return ""
+
+
+def build_project(directory: str):
+    """把 07-项目实战案例 抽成网页用的载荷。目录不在就返回 None（网页自动少一块）。"""
+    documents = []
+    raw = {}
+
+    for filename, title, summary in PROJECT_DOCS:
+        path = os.path.join(directory, filename)
+        if not os.path.isfile(path):
+            continue
+        text = read(path)
+        raw[filename] = text
+        head = re.search(r"^#\s+(.+?)\s*$", text, re.M)
+        documents.append({
+            "id": filename[:-3],
+            "title": title,
+            "file": PROJECT_DIR_NAME + "/" + filename,
+            "summary": summary,
+            "heading": head.group(1).strip() if head else title,
+            "quote": first_project_quote(text),
+            "lines": text.count("\n") + 1,
+            "markdown": text,
+        })
+
+    if not documents:
+        return None
+
+    dialogue = parse_project_dialogue(raw.get("02-模拟面试-完整对话.md", ""))
+    followups = parse_project_followups(raw.get("07-追问预演与压力面.md", ""))
+    pitfalls = parse_project_pitfalls(raw.get("08-如果重做一次.md", ""))
+
+    def count(rounds):
+        return sum(len(r["questions"]) for r in rounds)
+
+    practice = [
+        {"id": "interview", "title": "完整模拟面试", "mode": "dialogue",
+         "desc": "六个环节、%d 轮问答。面试官提问 → 你作答 → 展开参考回答与逐段点评。" % count(dialogue),
+         "rounds": dialogue},
+        {"id": "followup", "title": "追问预演", "mode": "qa",
+         "desc": "%d 个最可能被追问的问题。先自己答一遍，再对照「考什么 / 30 秒骨架 / 加分点 / 扣分回答」。" % count(followups),
+         "rounds": followups},
+        {"id": "pitfall", "title": "缺陷应对", "mode": "qa",
+         "desc": "%d 个已知缺陷。面试官指出来时怎么答：现象 → 根因 → 影响半径 → 怎么修 → 代价 → 面试话术。" % len(pitfalls),
+         "rounds": [{"name": "已知缺陷与修法", "questions": pitfalls}] if pitfalls else []},
+    ]
+    practice = [item for item in practice if item["rounds"] and count(item["rounds"])]
+
+    exercises = count(dialogue) + count(followups) + len(pitfalls)
+    stats = {
+        "documents": len(documents),
+        "lines": sum(d["lines"] for d in documents),
+        "dialogue": count(dialogue),
+        "followups": count(followups),
+        "pitfalls": len(pitfalls),
+        "exercises": exercises,
+    }
+
+    # 给主包用的索引信息（标题 / 统计 / 入口），完整内容在这个包里
+    index = {
+        "title": "项目实战案例",
+        "summary": "%d 篇复盘文档 · %d 道练习题" % (len(documents), exercises),
+        "stats": stats,
+    }
+
+    payload = {
+        "meta": {
+            "title": "项目实战案例",
+            "subtitle": "把一段真实的 Go Agent 项目经历，讲成能过面试的答案",
+            "tagline": "%d 篇深度文档 · %d 道练习题 · 全部结论可追溯到源码行号" % (
+                len(documents), exercises),
+        },
+        # 模块 README 不列入 documents：它是"这块内容是什么、怎么练"的前言，
+        # 不是第 N 篇复盘文档。网页上用 #/project/readme 单独读它。
+        "readme": split_frontmatter(read(os.path.join(directory, "README.md")))[1]
+                  if os.path.isfile(os.path.join(directory, "README.md")) else "",
+        "documents": documents,
+        "practice": practice,
+        "stats": stats,
+    }
+    return index, payload
+
+
+# ---------------------------------------------------------------------------
 
 def build():
     docs_dir = os.path.join(ROOT, "docs")
@@ -623,6 +815,9 @@ def build():
     algo = parse_algo_track()
     mock_total = sum(r["count"] for r in mock_rounds)
 
+    project = build_project(os.path.join(ROOT, PROJECT_DIR_NAME))
+    project_index = project[0] if project else None
+
     main_payload = {
         "meta": {
             "name": "Agent Zero To One",
@@ -644,6 +839,8 @@ def build():
             "mockQuestions": mock_total,
             "algoProblems": (algo or {}).get("stats", {}).get("problems", 0),
             "algoTopics": (algo or {}).get("stats", {}).get("topics", 0),
+            "projectDocs": (project_index or {}).get("stats", {}).get("documents", 0),
+            "projectExercises": (project_index or {}).get("stats", {}).get("exercises", 0),
         },
         "stages": STAGES,
         "sources": SOURCES,
@@ -679,6 +876,8 @@ def build():
             "summary": "13 个专题 + 100 道 Hot 100 详解 + 14 天路线",
             "stats": algo["stats"],
         },
+        # 项目实战案例同理：主包只放索引，11 篇文档 + 76 道题在 content-project.js 里
+        "project": project_index,
     }
 
     algo_payload = {
@@ -690,7 +889,7 @@ def build():
         "dayNotes": (algo or {}).get("dayNotes", []),
     }
 
-    return main_payload, algo_payload
+    return main_payload, algo_payload, (project[1] if project else None)
 
 
 def write_bundle(path: str, variable: str, payload) -> float:
@@ -705,7 +904,7 @@ def write_bundle(path: str, variable: str, payload) -> float:
 
 
 def main() -> int:
-    main_payload, algo_payload = build()
+    main_payload, algo_payload, project_payload = build()
 
     if "--check" in sys.argv:
         print("章节 {} 个：".format(len(main_payload["chapters"])))
@@ -732,6 +931,18 @@ def main() -> int:
         algo = algo_payload
         print("\n算法轨道：专题 {} / 题目 {} / 天笔记 {}".format(
             len(algo["topics"]), len(algo["problems"]), len(algo["dayNotes"])))
+        if project_payload:
+            print("\n项目实战案例：文档 {} 篇 / {} 行".format(
+                len(project_payload["documents"]), project_payload["stats"]["lines"]))
+            for item in project_payload["practice"]:
+                total = sum(len(r["questions"]) for r in item["rounds"])
+                print("  {:<10} {} 组 / {} 题".format(item["title"], len(item["rounds"]), total))
+            empty = [q["id"] for item in project_payload["practice"]
+                     for g in item["rounds"] for q in g["questions"] if not q["body"]]
+            if empty:
+                print("  [警告] {} 道题没有正文：{}".format(len(empty), empty[:5]))
+        else:
+            print("\n[警告] 没找到 {} 目录，项目实战案例这一块不会出现在网页上".format(PROJECT_DIR_NAME))
         missing = [c["no"] for c in main_payload["chapters"] if not c["goal"] or not c["code"]]
         if missing:
             print("[警告] 这些章节缺目标或配套代码信息：{}".format(missing))
@@ -740,13 +951,18 @@ def main() -> int:
     size_main = write_bundle(os.path.join(WEB_DIR, "content.js"), "AZTO", main_payload)
     size_algo = write_bundle(os.path.join(WEB_DIR, "content-algo.js"), "AZTO_ALGO", algo_payload)
 
-    print("已生成 web/content.js        {:.0f} KB".format(size_main))
-    print("已生成 web/content-algo.js   {:.0f} KB  （按需懒加载）".format(size_algo))
-    print("  章节 {} / 专题 {} / 速查表 {} / 题库 {} / 周笔记 {} / 模拟面试 {} 题 / 算法题 {}".format(
+    print("已生成 web/content.js         {:.0f} KB".format(size_main))
+    print("已生成 web/content-algo.js    {:.0f} KB  （按需懒加载）".format(size_algo))
+    if project_payload:
+        size_project = write_bundle(os.path.join(WEB_DIR, "content-project.js"),
+                                    "AZTO_PROJECT", project_payload)
+        print("已生成 web/content-project.js {:.0f} KB  （按需懒加载）".format(size_project))
+    print("  章节 {} / 专题 {} / 速查表 {} / 题库 {} / 周笔记 {} / 模拟面试 {} 题 / 算法题 {} / 项目实战 {} 题".format(
         len(main_payload["chapters"]), len(main_payload["wiki"]["topics"]),
         len(main_payload["wiki"]["cheatsheets"]), len(main_payload["wiki"]["interview"]),
         len(main_payload["notes"]), main_payload["mock"]["total"],
-        len(algo_payload["problems"])))
+        len(algo_payload["problems"]),
+        (project_payload or {}).get("stats", {}).get("exercises", 0)))
     print("  项目总行数 {:,}".format(main_payload["stats"]["lines"]))
     return 0
 
