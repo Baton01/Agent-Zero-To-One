@@ -19,23 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-================================================================================
-关于内容版权
-================================================================================
-
-本项目的**代码**采用上述 MIT License。
-
-本项目的**教程正文、专题总结、面试题库等文字内容**是在以下开源项目的基础上
-重新组织与重写而成，方法论、体系设计与学习系统形态向它们借鉴：
-
-  - Hello-Agents        https://github.com/datawhalechina/hello-agents
-                        （Datawhale，CC BY-NC-SA 4.0）
-  - Agent-Learning-Hub  https://github.com/datawhalechina/Agent-Learning-Hub
-  - LLM-Master          https://github.com/youngyangyang04/llm-master
-                        （MIT）
-  - LeetCode-BaiTiTong  https://github.com/mo-lx/LeetCode-BaiTiTong
-                        （MIT）
-
-转载、分发或二次创作本项目时，请同时遵守上述来源项目的版权说明。
-本项目正文为独立撰写，未逐字复制来源项目内容。
