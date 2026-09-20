@@ -517,6 +517,9 @@ FILES.forEach(function (rel) {
   function walk(dir, acc) {
     fs.readdirSync(dir, { withFileTypes: true }).forEach(function (entry) {
       if (entry.name === '.git' || entry.name === '__pycache__') { return; }
+      // launcher/ 下的打包产物会把整个项目复制一份，排掉它，
+      // 否则这里的"全站 md 回归"会把每个文档测两遍。
+      if (entry.isDirectory() && /^(build|dist|release)$/.test(entry.name)) { return; }
       var p = path.join(dir, entry.name);
       if (entry.isDirectory()) { walk(p, acc); }
       else if (/\.md$/.test(entry.name)) { acc.push(p); }

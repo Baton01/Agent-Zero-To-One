@@ -47,7 +47,12 @@ def main() -> int:
     dir_paths = set()
     basenames = set()
     for dirpath, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in (".git", "__pycache__", "node_modules")]
+        # launcher/ 下的 build / dist / release 是打包产物：package_release.py 会把
+        # 整个项目复制一份到 release/ 里，不排除的话每个文档都会被数两遍，
+        # 统计数字和失效链接都会失真。
+        dirnames[:] = [d for d in dirnames
+                       if d not in (".git", "__pycache__", "node_modules",
+                                    "build", "dist", "release")]
         for name in dirnames:
             rel = os.path.relpath(os.path.join(dirpath, name), ROOT).replace("\\", "/")
             dir_paths.add(rel)
