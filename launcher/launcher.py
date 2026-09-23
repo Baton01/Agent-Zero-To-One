@@ -33,6 +33,7 @@ import os
 import subprocess
 import sys
 import time
+import traceback
 import webbrowser
 
 #: 判题服务相对项目根的路径
@@ -49,17 +50,63 @@ IS_WINDOWS = os.name == "nt"
 # 定位
 # ---------------------------------------------------------------------------
 
+def _find_root(start: str):
+    """
+    从 start 开始向上找项目根（以 web/index.html 为标志），找不到返回 None。
+
+    为什么要向上找：开发布局里 exe 在 launcher/dist/AgentZeroToOne/，
+    离项目根隔了三层，而用户很自然会去双击那里那个 exe。
+    不找的话它只会打印一句"目录不对"然后退出 —— 看起来就是闪退。
+    """
+    current = os.path.abspath(start)
+    for _ in range(6):
+        if os.path.isfile(os.path.join(current, "web", "index.html")):
+            return current
+        parent = os.path.dirname(current)
+        if parent == current:          # 到盘符根了
+            break
+        current = parent
+    return None
+
+
 def app_root() -> str:
     """
     项目根目录。
 
     两种运行形态：
-      - 打包后：exe 就在项目根（发布包里 exe 和文档、code/ 平级），root = exe 所在目录
+      - 打包后：exe 就在项目根（发布包里 exe 和文档、code/ 平级）
       - 源码里：本文件在 launcher/ 下，root = 上一层
+    再退一步：都不对就从 exe 所在目录向上找 web/index.html。
     """
     if getattr(sys, "frozen", False):
-        return os.path.dirname(os.path.abspath(sys.executable))
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base = os.path.dirname(os.path.abspath(sys.executable))
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return _find_root(base) or base
+
+
+def hold_console():
+    """
+    失败时停住等回车，否则双击运行的用户什么都看不见。
+
+    双击启动的 exe 拥有一个新建的控制台，进程一退出窗口立刻消失 ——
+    用户只看到"闪退"，而真正的原因（目录不对 / 没装 Python / 端口占用）
+    一闪而过。所以非正常退出时要把消息留在屏幕上。
+
+    只在打包运行 + 真有控制台（stdin 是终端）时才停：
+    从命令行带重定向跑、或被别的程序调用时，停住会把人卡死。
+    """
+    if not getattr(sys, "frozen", False):
+        return
+    try:
+        if not sys.stdin or not sys.stdin.isatty():
+            return
+    except (ValueError, OSError):
+        return
+    try:
+        input("\n按回车键退出…")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
 
 def web_entry(root: str) -> str:
@@ -301,12 +348,16 @@ def main() -> int:
     banner()
 
     if not os.path.isfile(web_entry(root)):
+        search_from = (os.path.dirname(os.path.abspath(sys.executable))
+                       if getattr(sys, "frozen", False) else root)
         print()
-        print("[!] 这个目录里没有找到 web/index.html：")
-        print("    %s" % root)
+        print("[!] 没找到项目文件（web/index.html）。")
         print()
-        print("    发布包应该把 AgentZeroToOne.exe 放在项目根目录（和 web/、docs/ 平级）。")
-        print("    如果你是单独把 exe 拷出来的，请把它放回去。")
+        print("    从这里开始向上找了 6 层：%s" % search_from)
+        print()
+        print("    这个 exe 要和 web/、docs/、code/ 放在一起（也就是项目根目录）。")
+        print("    用 GitHub Releases 下载的压缩包的话，解压后直接双击里面的 exe 就行；")
+        print("    自己构建的话，跑 launcher/package_release.py 打成发布包再运行。")
         return 2
 
     # 网页版：本地文件直接打开，不需要任何服务
@@ -337,10 +388,6 @@ def main() -> int:
             webbrowser.open(index_url)
         print()
         print("  想退出，关掉这个窗口就行。")
-        try:
-            input() if not args.no_browser else None
-        except (EOFError, KeyboardInterrupt):
-            pass
         return 1
     else:
         print("[*] %s" % python_label)
@@ -416,7 +463,19 @@ def keep_running(server):
 
 
 if __name__ == "__main__":
+    # 退出码非 0 时要停一下再关窗口，否则双击运行的用户只看到"闪退"，
+    # 真正的原因（目录不对 / 没装 Python / 端口占用）根本来不及看。
+    exit_code = 1
     try:
-        sys.exit(main())
+        exit_code = main()
     except KeyboardInterrupt:
-        sys.exit(130)
+        exit_code = 130
+    except Exception:                                  # noqa: BLE001 - 兜底，别静默退出
+        traceback.print_exc()
+        print()
+        print("[!] 启动器自己出错了。把上面的信息发到项目的 Issues 里，谢谢。")
+        exit_code = 1
+
+    if exit_code != 0:
+        hold_console()
+    sys.exit(exit_code)

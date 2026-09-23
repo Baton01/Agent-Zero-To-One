@@ -1,26 +1,29 @@
 """
-把 launcher/launcher.py 打成 Windows 可执行文件（发布用）。
+编译 Windows 一键启动器（发布用）。
 
 用法：
-    python launcher/build_exe.py            # 构建
-    python launcher/build_exe.py --clean    # 先删掉上次的构建产物再构建
+    python launcher/build_exe.py            # 编译
+    python launcher/build_exe.py --clean    # 先删掉上次的产物再编译
 
 产物：
-    launcher/dist/AgentZeroToOne/AgentZeroToOne.exe   （目录形态，双击即可）
-    launcher/dist/AgentZeroToOne/_internal/…          （PyInstaller 运行时，必须一起分发）
+    launcher/dist/AgentZeroToOne.exe        （单个文件，几十 KB）
 
-**为什么用 onedir 而不是 onefile？**
-    1. onefile 每次运行都要把整个运行时解压到临时目录，启动慢（这个有几秒），
-       而启动器的作用就是"双击后赶紧打开网页"，慢就失去意义了。
-    2. onefile 的自解压行为是杀毒软件误报的重灾区，onedir 少得多。
-    3. 出问题时 onedir 能直接看到 _internal 里的东西，好排查。
+需要 gcc（MinGW-w64 或 TDM-GCC）。项目里的在线判题本来就要 g++，所以这个依赖
+通常已经在。
 
-**这个 exe 里没有 Python 解释器吗？**
-    有。PyInstaller 会把构建机的 Python 打进去，所以 exe 自己能跑起来。
-    但**判题**用的是另一个进程：判题器要执行用户提交的 Python 代码，
-    必然要一个真实的 python.exe（见 launcher.py 顶部的说明）。
-    所以 exe 自己不需要用户装 Python 就能启动、开网页；
-    但要用「在线判题」和跑 `code/` 里的章节脚本，用户机器上得有 Python。
+--------------------------------------------------------------------------
+为什么用 C 而不是 PyInstaller
+--------------------------------------------------------------------------
+最早这版是用 PyInstaller 把 launcher.py 冻成 exe 的。在装了 360 安全卫士的机器上，
+双击之后 exe 被直接隔离：先提示"拒绝访问"，随后文件从磁盘消失。
+PyInstaller 的引导器（bootloader）是杀软启发式规则的常客，而未签名的 exe
+对国产杀软尤其敏感 —— 而这个项目的读者大多在国内。
+
+对照实验：同样用 gcc 编出来的原生 exe，运行正常、不被删。
+所以改成原生实现：体积从 13.9 MB 降到约 73 KB，启动更快，也绕开了整类误报。
+
+跨平台（macOS / Linux）仍然用 launcher/launcher.py：
+    python launcher/launcher.py
 """
 
 from __future__ import annotations
@@ -32,62 +35,54 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(HERE, "dist")
-BUILD = os.path.join(HERE, "build")
-SPEC = os.path.join(HERE, "AgentZeroToOne.spec")
+SOURCE = os.path.join(HERE, "launcher_win.c")
+OUTPUT = os.path.join(DIST, "AgentZeroToOne.exe")
 
-APP_NAME = "AgentZeroToOne"
-ENTRY = os.path.join(HERE, "launcher.py")
+#: 需要链接的库：ws2_32 给 Winsock（探测端口），shell32 给 ShellExecuteW（开浏览器）
+LIBS = ["-lws2_32", "-lshell32"]
+
+
+def find_compiler():
+    for name in ("gcc", "x86_64-w64-mingw32-gcc", "clang"):
+        exe = shutil.which(name)
+        if exe:
+            return exe
+    return None
 
 
 def clean():
-    for path in (DIST, BUILD, SPEC):
-        if os.path.isdir(path):
-            shutil.rmtree(path, ignore_errors=True)
-            print("  已删除 %s" % path)
-        elif os.path.isfile(path):
-            os.remove(path)
-            print("  已删除 %s" % path)
+    if os.path.isdir(DIST):
+        shutil.rmtree(DIST, ignore_errors=True)
+        print("  已删除 %s" % DIST)
 
 
 def build():
-    command = [
-        sys.executable, "-m", "PyInstaller",
-        "--noconfirm",
-        "--clean",
-        "--onedir",              # 见模块注释：不用 onefile
-        "--console",             # 要控制台：服务日志、Ctrl+C 停服务、报错可读
-        "--name", APP_NAME,
-        "--distpath", DIST,
-        "--workpath", BUILD,
-        "--specpath", HERE,
-        # 启动器只用标准库，没有第三方依赖要收；显式排除几个体积大户，
-        # 免得 PyInstaller 顺着环境里的包把它们拖进来。
-        "--exclude-module", "tkinter",
-        "--exclude-module", "unittest",
-        "--exclude-module", "pydoc",
-        "--exclude-module", "test",
-        ENTRY,
-    ]
+    compiler = find_compiler()
+    if not compiler:
+        print("[!] 找不到 C 编译器（gcc / clang）。")
+        print("    Windows 上装 MinGW-w64 或 TDM-GCC；这个项目判 C++ 题本来也需要它。")
+        return 2
+
+    os.makedirs(DIST, exist_ok=True)
+    command = [compiler, "-O2", "-Wall", "-o", OUTPUT, SOURCE] + LIBS
     print("[*] " + " ".join(command))
     print()
     result = subprocess.run(command, cwd=HERE)
     if result.returncode != 0:
         print()
-        print("[!] 构建失败（退出码 %d）" % result.returncode)
+        print("[!] 编译失败（退出码 %d）" % result.returncode)
         return result.returncode
 
-    exe = os.path.join(DIST, APP_NAME, APP_NAME + ".exe")
-    if not os.path.isfile(exe):
-        print("[!] 构建结束但找不到 %s" % exe)
+    if not os.path.isfile(OUTPUT):
+        print("[!] 编译结束但找不到 %s" % OUTPUT)
         return 1
 
-    size = 0
-    for dirpath, _dirnames, filenames in os.walk(os.path.join(DIST, APP_NAME)):
-        for name in filenames:
-            size += os.path.getsize(os.path.join(dirpath, name))
     print()
-    print("[OK] %s" % exe)
-    print("     目录总大小 %.1f MB" % (size / 1024.0 / 1024.0))
+    print("[OK] %s" % OUTPUT)
+    print("     %.1f KB" % (os.path.getsize(OUTPUT) / 1024.0))
+    print()
+    print("     注意：这个 exe 要和 web/、docs/、code/ 放在一起才能工作。")
+    print("     打发布包用：python launcher/package_release.py 1.0.0")
     return 0
 
 
@@ -95,11 +90,6 @@ def main() -> int:
     if "--clean" in sys.argv:
         print("[*] 清理上次的构建产物")
         clean()
-    try:
-        import PyInstaller  # noqa: F401
-    except ImportError:
-        print("[!] 没装 PyInstaller。先跑：pip install pyinstaller")
-        return 2
     return build()
 
 

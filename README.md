@@ -26,7 +26,7 @@
 
 | 方式 | 适合谁 | 怎么开始 |
 |---|---|---|
-| **[exe 包](https://github.com/Baton01/Agent-Zero-To-One/releases/latest)**（约 10 MB） | 想马上用起来，不想碰命令行 | 解压 → 双击 `AgentZeroToOne.exe`。会自动起好判题服务并打开网页版 |
+| **[exe 包](https://github.com/Baton01/Agent-Zero-To-One/releases/latest)**（约 4 MB） | 想马上用起来，不想碰命令行 | 解压 → 双击 `AgentZeroToOne.exe`。会自动起好判题服务并打开网页版 |
 | **Source code (zip)**（同页自动生成） | 想读源码、自己改、fork | 解压后双击 `web/index.html` 就能看全部内容 |
 | **`git clone`** | 想跟着更新、给项目提改动 | 见下面「快速开始」 |
 

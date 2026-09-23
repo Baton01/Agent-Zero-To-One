@@ -10,8 +10,8 @@
 包内结构（exe 在根目录，和 web/、docs/ 平级 —— 启动器就是这么找项目根的）：
 
     Agent-Zero-To-One-v1.0.0-win64/
-    ├── AgentZeroToOne.exe        ← 双击这个
-    ├── _internal/                ← PyInstaller 运行时（必须一起带着）
+    ├── AgentZeroToOne.exe        ← 双击这个（单个文件，约 73 KB）
+    ├── 怎么用.txt                ← 双击前先看这个
     ├── web/                      ← 网页版（也可以直接双击 index.html）
     ├── docs/ code/ 05-算法面试/ …
     └── README.md
@@ -32,13 +32,13 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 RELEASE = os.path.join(HERE, "release")
-DIST_APP = os.path.join(HERE, "dist", "AgentZeroToOne")
+DIST_APP = os.path.join(HERE, "dist")
 APP_NAME = "AgentZeroToOne"
 
 #: 不进发布包的东西
 EXCLUDE_DIRS = {".git", "__pycache__", "build", "dist", "release", ".idea", ".vscode"}
 EXCLUDE_FILES = {".DS_Store", "Thumbs.db"}
-EXCLUDE_SUFFIX = (".pyc", ".pyo", ".spec")
+EXCLUDE_SUFFIX = (".pyc", ".pyo", ".spec", ".log")
 
 
 def copy_tree(src, dst):
@@ -82,8 +82,7 @@ def main() -> int:
     zip_path = os.path.join(RELEASE, stage_name + ".zip")
 
     exe = os.path.join(DIST_APP, APP_NAME + ".exe")
-    internal = os.path.join(DIST_APP, "_internal")
-    if not os.path.isfile(exe) or not os.path.isdir(internal):
+    if not os.path.isfile(exe):
         print("[!] 还没构建 exe。先跑：python launcher/build_exe.py")
         return 2
 
@@ -97,7 +96,6 @@ def main() -> int:
 
     print("[*] 放入 exe…")
     shutil.copy2(exe, os.path.join(stage, APP_NAME + ".exe"))
-    shutil.copytree(internal, os.path.join(stage, "_internal"))
 
     # 发布包里带一份"怎么用"，免得用户双击之前还要回来翻 GitHub
     readme = os.path.join(stage, "怎么用.txt")
